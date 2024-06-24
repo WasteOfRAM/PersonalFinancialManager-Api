@@ -52,9 +52,10 @@ public static class InfrastructureExtensions
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
                     ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
+                    //ValidAudience = configuration["Jwt:Audience"],
                     ValidateIssuer = true,
-                    ValidateAudience = true
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
                 };
             });
 
