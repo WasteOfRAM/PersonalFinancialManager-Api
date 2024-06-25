@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using PersonalFinancialManager.Data.Entities;
+using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
 using System.Text;
 

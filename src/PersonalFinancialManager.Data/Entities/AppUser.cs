@@ -1,4 +1,4 @@
-﻿namespace PersonalFinancialManager.Data.Entities;
+﻿namespace PersonalFinancialManager.Core.Entities;
 
 using Microsoft.AspNetCore.Identity;
 

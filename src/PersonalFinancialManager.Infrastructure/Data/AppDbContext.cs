@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using PersonalFinancialManager.Data.Entities;
+using PersonalFinancialManager.Core.Entities;
 
 public class AppDbContext(DbContextOptions options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
 {
