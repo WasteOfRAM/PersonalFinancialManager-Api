@@ -59,6 +59,8 @@ public static class InfrastructureExtensions
                 };
             });
 
+        services.AddAuthorization();
+
         return services;
     }
 }
