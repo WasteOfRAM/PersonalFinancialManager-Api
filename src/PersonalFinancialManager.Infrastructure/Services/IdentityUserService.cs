@@ -1,7 +1,6 @@
 ﻿namespace PersonalFinancialManager.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Identity;
-using PersonalFinancialManager.Application.DTOs.Token;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Core.Entities;

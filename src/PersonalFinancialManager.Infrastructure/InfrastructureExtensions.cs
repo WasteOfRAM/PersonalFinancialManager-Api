@@ -37,6 +37,7 @@ public static class InfrastructureExtensions
             options.Password.RequireDigit = true;
             options.Password.RequiredLength = 8;
         })
+            .AddSignInManager()
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();

@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using PersonalFinancialManager.Infrastructure;
+using PersonalFinancialManager.WebApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAppDbContext(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddTokenService(builder.Configuration);
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1);
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
