@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
+using PersonalFinancialManager.Infrastructure.Services;
 using System.Text;
 
 public static class InfrastructureExtensions
@@ -45,6 +47,8 @@ public static class InfrastructureExtensions
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddScoped<IUserService, IdentityUserService>();
 
         return services;
     }
