@@ -35,7 +35,6 @@ public static class InfrastructureExtensions
     {
         services.AddIdentityCore<AppUser>(options =>
         {
-            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
             options.SignIn.RequireConfirmedAccount = false;
             options.User.RequireUniqueEmail = true;
             options.Password.RequireNonAlphanumeric = true;

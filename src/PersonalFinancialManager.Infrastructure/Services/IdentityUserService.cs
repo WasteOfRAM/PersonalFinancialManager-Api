@@ -13,7 +13,8 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
     {
         AppUser user = new()
         {
-            Email = createUserDTO.Email
+            Email = createUserDTO.Email,
+            UserName = createUserDTO.Email
         };
 
         var result = await userManager.CreateAsync(user, createUserDTO.Password);
@@ -21,9 +22,6 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
         if (!result.Succeeded) return null;
 
         // TODO: Send email verification link
-
-        // TODO: Check if the Id in the created user is populated without the next line
-        // await userManager.UpdateAsync(user);
 
         return new UserDTO(Id: user.Id, Email: user.Email);
     }
