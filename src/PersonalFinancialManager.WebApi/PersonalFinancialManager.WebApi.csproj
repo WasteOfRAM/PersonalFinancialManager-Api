@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PersonalFinancialManager.Application\PersonalFinancialManager.Application.csproj" />
     <ProjectReference Include="..\PersonalFinancialManager.Infrastructure\PersonalFinancialManager.Infrastructure.csproj" />
   </ItemGroup>
 

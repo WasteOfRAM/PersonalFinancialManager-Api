@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using PersonalFinancialManager.Application;
 using PersonalFinancialManager.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAppDbContext(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddTokenService(builder.Configuration);
+
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
 
 builder.Services.AddEndpointsApiExplorer();
 

@@ -12,6 +12,13 @@ using System.Text;
 
 public static class InfrastructureExtensions
 {
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+    {
+
+
+        return services;
+    }
+
     public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
