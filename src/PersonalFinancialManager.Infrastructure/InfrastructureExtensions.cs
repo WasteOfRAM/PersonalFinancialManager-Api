@@ -16,7 +16,7 @@ public static class InfrastructureExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
-
+        services.AddScoped<IUserService, IdentityUserService>();
 
         return services;
     }
@@ -46,8 +46,6 @@ public static class InfrastructureExtensions
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-
-        services.AddScoped<IUserService, IdentityUserService>();
 
         return services;
     }
