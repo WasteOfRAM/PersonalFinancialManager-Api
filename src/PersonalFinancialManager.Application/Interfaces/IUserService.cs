@@ -1,8 +1,9 @@
 ﻿namespace PersonalFinancialManager.Application.Interfaces;
 
 using PersonalFinancialManager.Application.DTOs.User;
+using PersonalFinancialManager.Application.ServiceModels;
 
 public interface IUserService
 {
-    Task<UserDTO?> CreateAsync(CreateUserDTO createUserDTO);
+    Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO);
 }
