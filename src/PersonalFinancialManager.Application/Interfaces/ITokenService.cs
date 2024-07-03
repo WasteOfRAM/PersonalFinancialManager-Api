@@ -1,4 +1,4 @@
-﻿namespace PersonalFinancialManager.Infrastructure.Interfaces;
+﻿namespace PersonalFinancialManager.Application.Interfaces;
 
 using System.Security.Claims;
 

@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PersonalFinancialManager.Infrastructure.Interfaces;
+using PersonalFinancialManager.Application.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
