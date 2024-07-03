@@ -18,7 +18,7 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
         };
 
         var identityResult = await userManager.CreateAsync(user, createUserDTO.Password);
-
+        
         ServiceResult result = new()
         {
             Success = identityResult.Succeeded
