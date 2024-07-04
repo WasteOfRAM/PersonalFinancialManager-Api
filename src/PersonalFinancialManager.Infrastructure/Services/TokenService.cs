@@ -28,7 +28,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[64];
+        var randomNumber = new byte[256];
 
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
