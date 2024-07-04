@@ -17,6 +17,7 @@ public static class InfrastructureExtensions
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
         services.AddScoped<IUserService, IdentityUserService>();
+        services.AddTransient<ITokenService, TokenService>();
 
         return services;
     }
@@ -35,6 +36,7 @@ public static class InfrastructureExtensions
     {
         services.AddIdentityCore<AppUser>(options =>
         {
+            // TODO: Enable email verification when email service is ready.
             options.SignIn.RequireConfirmedAccount = false;
             options.User.RequireUniqueEmail = true;
             options.Password.RequireNonAlphanumeric = true;
@@ -45,6 +47,7 @@ public static class InfrastructureExtensions
         })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
+            .AddSignInManager()
             .AddDefaultTokenProviders();
 
         return services;
@@ -60,7 +63,6 @@ public static class InfrastructureExtensions
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
                     ValidIssuer = configuration["Jwt:Issuer"],
-                    //ValidAudience = configuration["Jwt:Audience"],
                     ValidateIssuer = true,
                     ValidateAudience = false,
                     ValidateLifetime = true,
