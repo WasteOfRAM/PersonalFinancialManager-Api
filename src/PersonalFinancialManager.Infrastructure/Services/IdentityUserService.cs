@@ -68,19 +68,9 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
 
         if (user == null || !signInResult!.Succeeded)
         {
-            if (signInResult!.IsNotAllowed)
-            {
-                result.Success = false;
-                // TODO: Move the hardcoded strings to a constants class.
-                result.Errors = new Dictionary<string, string[]> { { "Email verification.", ["Email must be verified to login."] } };
-            }
-            else
-            {
-                result.Success = false;
-                // TODO: Move the hardcoded strings to a constants class.
-                result.Errors = new Dictionary<string, string[]> { { "Invalid login.", ["Invalid email or password."] } };
-            }
-
+            result.Success = false;
+            // TODO: Move the hardcoded strings to a constants class.
+            result.Errors = new Dictionary<string, string[]> { { "Invalid login.", ["Invalid email or password."] } };
         }
 
         return result;
