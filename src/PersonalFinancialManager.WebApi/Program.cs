@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using PersonalFinancialManager.Application;
 using PersonalFinancialManager.Infrastructure;
+using PersonalFinancialManager.WebApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder.Services.AddTokenService(builder.Configuration);
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
+
+builder.Services.AddApiVersioning();
 
 builder.Services.AddEndpointsApiExplorer();
 
