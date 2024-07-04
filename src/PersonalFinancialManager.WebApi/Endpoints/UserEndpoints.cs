@@ -1,6 +1,7 @@
 ﻿namespace PersonalFinancialManager.WebApi.Endpoints;
 
 using Microsoft.AspNetCore.Http.HttpResults;
+using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Application.ServiceModels;
@@ -9,16 +10,28 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoints(this IEndpointRouteBuilder routes)
     {
-        RouteGroupBuilder userGroup = routes.MapGroup("user");
+        RouteGroupBuilder userRoutes = routes.MapGroup("user");
 
-        userGroup.MapPost("register", async Task<Results<Ok, ValidationProblem>> (CreateUserDTO userDTO, IUserService userService) =>
+        userRoutes.MapPost("register", async Task<Results<Ok, ValidationProblem>> (CreateUserDTO userDTO, IUserService userService) =>
         {
-            ServiceResult result = await userService.CreateAsync(userDTO);
+            ServiceResult serviceResult = await userService.CreateAsync(userDTO);
 
-            if (!result.Success)
-                return TypedResults.ValidationProblem(result.Errors!);
+            if (!serviceResult.Success)
+                return TypedResults.ValidationProblem(serviceResult.Errors!);
 
             return TypedResults.Ok();
+        })
+            .MapToApiVersion(1)
+            .AllowAnonymous();
+
+        userRoutes.MapPost("login", async Task<Results<Ok<AccessTokenDTO>, ValidationProblem>> (LoginDTO loginDTO, IUserService userService) => 
+        {
+            ServiceResult<AccessTokenDTO> serviceResult = await userService.LoginAsync(loginDTO);
+
+            if (!serviceResult.Success)
+                return TypedResults.ValidationProblem(serviceResult.Errors!);
+
+            return TypedResults.Ok(serviceResult.Data);
         })
             .MapToApiVersion(1)
             .AllowAnonymous();
