@@ -32,7 +32,7 @@ public static class InfrastructureExtensions
         return services;
     }
 
-    public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
     {
         services.AddIdentityCore<AppUser>(options =>
         {
@@ -66,10 +66,28 @@ public static class InfrastructureExtensions
                     ValidateIssuer = true,
                     ValidateAudience = false,
                     ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            })
+            .AddJwtBearer("expired", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidateIssuer = true,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder()
+            .AddPolicy("ExpiredToken", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.AuthenticationSchemes.Add("expired");
+            });
 
         return services;
     }

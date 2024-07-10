@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddAppDbContext(builder.Configuration);
-builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddIdentityServices();
 builder.Services.AddTokenService(builder.Configuration);
 
 builder.Services.AddApplicationServices();
