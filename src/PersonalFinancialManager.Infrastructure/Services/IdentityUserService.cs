@@ -57,6 +57,7 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
 
                 user.RefreshToken = token.RefreshToken;
                 // TODO: Change the expires time for something longer after testing
+                // TODO: Move to hardcoded value to constants
                 user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(5);
 
                 await userManager.UpdateAsync(user);
@@ -72,6 +73,42 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
             // TODO: Move the hardcoded strings to a constants class.
             result.Errors = new Dictionary<string, string[]> { { "Invalid login.", ["Invalid email or password."] } };
         }
+
+        return result;
+    }
+
+    public async Task<ServiceResult<AccessTokenDTO>> TokenRefresh(string userId, string refreshToken)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+
+        if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiration > DateTime.Now)
+        {
+            return new ServiceResult<AccessTokenDTO>
+            {
+                Success = false
+            };
+        }
+
+        var principal = await signInManager.CreateUserPrincipalAsync(user);
+
+        AccessTokenDTO token = new()
+        {
+            AccessToken = tokenService.GenerateAccessToken(principal.Claims),
+            RefreshToken = tokenService.GenerateRefreshToken()
+        };
+
+        user.RefreshToken = token.RefreshToken;
+        // TODO: Change the expires time for something longer after testing
+        // TODO: Move to hardcoded value to constants
+        user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(5);
+
+        await userManager.UpdateAsync(user);
+
+        var result = new ServiceResult<AccessTokenDTO>
+        {
+            Success = true,
+            Data = token
+        };
 
         return result;
     }

@@ -9,4 +9,6 @@ public interface IUserService
     Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO);
 
     Task<ServiceResult<AccessTokenDTO>> LoginAsync(LoginDTO loginDTO);
+
+    Task<ServiceResult<AccessTokenDTO>> TokenRefresh(string userId, string refreshToken);
 }
