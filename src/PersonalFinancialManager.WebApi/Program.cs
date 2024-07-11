@@ -16,9 +16,13 @@ builder.Services.AddInfrastructureServices();
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
