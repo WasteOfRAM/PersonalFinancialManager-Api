@@ -2,17 +2,20 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using PersonalFinancialManager.Application;
 using PersonalFinancialManager.Infrastructure;
+using PersonalFinancialManager.WebApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddAppDbContext(builder.Configuration);
-builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddIdentityServices();
 builder.Services.AddTokenService(builder.Configuration);
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
+
+builder.Services.AddApiVersioning();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -36,6 +39,9 @@ ApiVersionSet apiVersionSet = app.NewApiVersionSet()
 
 RouteGroupBuilder routeGroup = app
     .MapGroup("api/v{apiVersion:apiVersion}")
-    .WithApiVersionSet(apiVersionSet);
+    .WithApiVersionSet(apiVersionSet)
+    .RequireAuthorization();
+
+routeGroup.MapUserEndpoints();
 
 app.Run();

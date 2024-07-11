@@ -6,15 +6,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
+using PersonalFinancialManager.Infrastructure.Services;
 using System.Text;
 
 public static class InfrastructureExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
-
+        services.AddScoped<IUserService, IdentityUserService>();
+        services.AddTransient<ITokenService, TokenService>();
 
         return services;
     }
@@ -29,11 +32,11 @@ public static class InfrastructureExtensions
         return services;
     }
 
-    public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
     {
         services.AddIdentityCore<AppUser>(options =>
         {
-            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+            // TODO: Enable email verification when email service is ready.
             options.SignIn.RequireConfirmedAccount = false;
             options.User.RequireUniqueEmail = true;
             options.Password.RequireNonAlphanumeric = true;
@@ -44,6 +47,7 @@ public static class InfrastructureExtensions
         })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
+            .AddSignInManager()
             .AddDefaultTokenProviders();
 
         return services;
@@ -59,14 +63,31 @@ public static class InfrastructureExtensions
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
                     ValidIssuer = configuration["Jwt:Issuer"],
-                    //ValidAudience = configuration["Jwt:Audience"],
                     ValidateIssuer = true,
                     ValidateAudience = false,
                     ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            })
+            .AddJwtBearer("expired", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidateIssuer = true,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder()
+            .AddPolicy("ExpiredToken", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.AuthenticationSchemes.Add("expired");
+            });
 
         return services;
     }
