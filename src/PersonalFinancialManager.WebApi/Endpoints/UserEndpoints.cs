@@ -17,10 +17,8 @@ public static class UserEndpoints
         {
             ServiceResult serviceResult = await userService.CreateAsync(userDTO);
 
-            if (!serviceResult.Success)
-                return TypedResults.ValidationProblem(serviceResult.Errors!);
-
-            return TypedResults.Ok();
+            return serviceResult.Success ? TypedResults.Ok() :
+                                           TypedResults.ValidationProblem(serviceResult.Errors!);
         })
             .MapToApiVersion(1)
             .AllowAnonymous();
@@ -29,10 +27,8 @@ public static class UserEndpoints
         {
             ServiceResult<AccessTokenDTO> serviceResult = await userService.LoginAsync(loginDTO);
 
-            if (!serviceResult.Success)
-                return TypedResults.ValidationProblem(serviceResult.Errors!);
-
-            return TypedResults.Ok(serviceResult.Data);
+            return serviceResult.Success ? TypedResults.Ok(serviceResult.Data) : 
+                                           TypedResults.ValidationProblem(serviceResult.Errors!);
         })
             .MapToApiVersion(1)
             .AllowAnonymous();
@@ -43,10 +39,8 @@ public static class UserEndpoints
 
             ServiceResult<AccessTokenDTO> serviceResult = await userService.TokenRefresh(userId!, refreshToken.RefreshToken);
 
-            if (!serviceResult.Success)
-                return TypedResults.Unauthorized();
-
-            return TypedResults.Ok(serviceResult.Data);
+            return serviceResult.Success ? TypedResults.Ok(serviceResult.Data) :
+                                           TypedResults.Unauthorized();
         })
             .MapToApiVersion(1)
             .RequireAuthorization("ExpiredToken");
