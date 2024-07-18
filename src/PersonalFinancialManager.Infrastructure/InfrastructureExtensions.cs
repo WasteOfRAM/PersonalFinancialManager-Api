@@ -6,18 +6,26 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
-using PersonalFinancialManager.Infrastructure.Services;
+using System.Reflection;
 using System.Text;
 
 public static class InfrastructureExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
-        services.AddScoped<IUserService, IdentityUserService>();
-        services.AddTransient<ITokenService, TokenService>();
+        var types = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.ToString().EndsWith("Service")).ToList();
+
+        foreach (var type in types)
+        {
+            var @interface = type.GetInterface("I" + type.Name);
+
+            if (@interface == null)
+                continue;
+
+            services.AddScoped(@interface, type);
+        }
 
         return services;
     }
