@@ -15,6 +15,8 @@ builder.Services.AddTokenService(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
 
+builder.Services.AddRepositories();
+
 builder.Services.AddApiVersioning();
 
 builder.Services.AddEndpointsApiExplorer();

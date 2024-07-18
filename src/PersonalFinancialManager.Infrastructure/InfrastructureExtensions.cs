@@ -30,6 +30,23 @@ public static class InfrastructureExtensions
         return services;
     }
 
+    public static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
+        var types = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.ToString().EndsWith("Repository")).ToList();
+
+        foreach (var type in types)
+        {
+            var @interface = type.GetInterface("I" + type.Name);
+
+            if (@interface == null)
+                continue;
+
+            services.AddScoped(@interface, type);
+        }
+
+        return services;
+    }
+
     public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
