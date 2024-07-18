@@ -8,7 +8,7 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using System.Threading.Tasks;
 
-public class IdentityUserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : IUserService
+public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : IUserService
 {
     public async Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO)
     {
