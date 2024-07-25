@@ -3,8 +3,10 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalFinancialManager.Core.Interfaces.Repositories;
 using PersonalFinancialManager.Infrastructure.Data;
+using PersonalFinancialManager.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -27,9 +29,15 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
                               await DbSet.FirstOrDefaultAsync(predicate);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? predicate = null, bool asNoTracking = false)
+    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? predicate = null, bool asNoTracking = false, int page = 1, int itemsPerPage = 0, string? order = null, string? orderBy = null)
     {
         var elements = predicate is not null ? DbSet.Where(predicate) : DbSet.AsQueryable();
+
+        if (order != null && orderBy != null)
+            elements = elements.OrderBy(orderBy, order);
+
+        if (itemsPerPage > 0)
+            elements = elements.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
 
         return asNoTracking ? await elements.AsNoTracking().ToArrayAsync() :
                               await elements.ToArrayAsync();
