@@ -16,7 +16,7 @@ public class Account
     [MaxLength(5)]
     public string Currency { get; set; } = null!;
 
-    public AccountType Type { get; set; }
+    public AccountType AccountType { get; set; }
 
     public DateTime CreationDate { get; set; }
 
