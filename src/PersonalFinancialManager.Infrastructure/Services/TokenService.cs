@@ -19,7 +19,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
         (
             issuer: configuration["Jwt:Issuer"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(2),
+            expires: DateTime.UtcNow.AddDays(2),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
         );
 
