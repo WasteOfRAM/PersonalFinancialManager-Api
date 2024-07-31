@@ -32,7 +32,7 @@ public class AccountService(IAccountRepository accountRepository, UserManager<Ap
             Currency = createAccountDTO.Currency,
             AccountType = (AccountType)Enum.Parse(typeof(AccountType), createAccountDTO.AccountType),
             Description = createAccountDTO.Description,
-            Total = createAccountDTO.Total,
+            Total = createAccountDTO.Total ?? 0.0m,
             CreationDate = DateTime.Now
         };
 
@@ -52,7 +52,7 @@ public class AccountService(IAccountRepository accountRepository, UserManager<Ap
                 AccountType = entity.AccountType.ToString(),
                 Description = entity.Description,
                 Total = entity.Total,
-                CreationDate = entity.CreationDate
+                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
             }
         };
 

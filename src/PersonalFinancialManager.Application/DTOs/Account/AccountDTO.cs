@@ -10,7 +10,7 @@ public class AccountDTO
 
     public string AccountType { get; set; } = null!;
 
-    public DateTime CreationDate { get; set; }
+    public string CreationDate { get; set; } = null!;
 
     public decimal Total { get; set; }
 
