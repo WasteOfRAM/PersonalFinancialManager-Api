@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using PersonalFinancialManager.Application.DTOs.Account;
 using PersonalFinancialManager.Application.Interfaces;
 using PersonalFinancialManager.Application.ServiceModels;
+using PersonalFinancialManager.WebApi.Filters;
 using System.Security.Claims;
 
 public static class AccountEndpoints
@@ -21,6 +22,7 @@ public static class AccountEndpoints
             return serviceResult.Success ? TypedResults.Ok(serviceResult.Data) :
                                            TypedResults.ValidationProblem(serviceResult.Errors!);
         })
-            .MapToApiVersion(1);
+            .MapToApiVersion(1)
+            .AddEndpointFilter<ModelValidationFilter<CreateAccountDTO>>();
     }
 }
