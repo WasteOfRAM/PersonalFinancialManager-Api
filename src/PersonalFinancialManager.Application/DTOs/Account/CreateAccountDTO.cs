@@ -16,6 +16,7 @@ public class CreateAccountDTO
     [EnumDataType(typeof(AccountType))]
     public string AccountType { get; set; } = null!;
 
+    [Range(0.0, double.PositiveInfinity)]
     public decimal? Total { get; set; }
 
     public string? Description { get; set; }
