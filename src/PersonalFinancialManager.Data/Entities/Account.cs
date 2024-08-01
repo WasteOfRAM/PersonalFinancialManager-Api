@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PersonalFinancialManager.Core.Enumerations;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class Account
 {
@@ -26,6 +27,10 @@ public class Account
 
     [MaxLength(100)]
     public string? Description { get; set; }
+
+    public Guid AppUserId { get; set; }
+    [ForeignKey(nameof(AppUserId))]
+    public virtual AppUser? AppUser { get; set; }
 
     public virtual ICollection<Transaction>? Transactions { get; set; }
 }
