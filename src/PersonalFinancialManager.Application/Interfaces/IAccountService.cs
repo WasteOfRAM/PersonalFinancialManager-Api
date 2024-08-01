@@ -7,7 +7,7 @@ public interface IAccountService
 {
     Task<ServiceResult<AccountDTO>> CreateAsync(string userId, CreateAccountDTO createAccountDTO);
 
-    Task<ServiceResult<AccountDTO>> GetAsync(Guid id);
+    Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId);
 
     Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel);
 
