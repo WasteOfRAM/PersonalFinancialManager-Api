@@ -1,5 +1,6 @@
 ﻿namespace PersonalFinancialManager.WebApi.Endpoints;
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using PersonalFinancialManager.Application.DTOs.Account;
 using PersonalFinancialManager.Application.Interfaces;
@@ -13,7 +14,7 @@ public static class AccountEndpoints
     {
         RouteGroupBuilder accountRoutes = routes.MapGroup("account");
 
-        accountRoutes.MapPost("create", async Task<Results<Ok<AccountDTO>, ValidationProblem>> (HttpContext context, CreateAccountDTO createAccountDTO, IAccountService accountService) =>
+        accountRoutes.MapPost("/", async Task<Results<Ok<AccountDTO>, ValidationProblem>> (CreateAccountDTO createAccountDTO, IAccountService accountService, HttpContext context) =>
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -24,5 +25,21 @@ public static class AccountEndpoints
         })
             .MapToApiVersion(1)
             .AddEndpointFilter<ModelValidationFilter<CreateAccountDTO>>();
+
+
+        accountRoutes.MapGet("/{id:Guid}", async Task<Results<Ok<AccountDTO>, NotFound>> (Guid id, IAccountService accountService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult<AccountDTO> serviceResult = await accountService.GetAsync(id, userId!);
+
+            if (!serviceResult.Success) 
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Ok(serviceResult.Data);
+        })
+            .MapToApiVersion(1);
     }
 }
