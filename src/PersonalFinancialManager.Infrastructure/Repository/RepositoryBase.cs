@@ -49,5 +49,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
 
     public void Update(TEntity entity) => DbSet.Update(entity);
 
+    public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression) => DbSet.AnyAsync(expression);
+
     public async Task<int> SaveAsync() => await dbContext.SaveChangesAsync();
 }

@@ -16,5 +16,7 @@ public interface IRepositoryBase<TEntity> where TEntity : class
 
     void Update(TEntity entity);
 
+    Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
+
     Task<int> SaveAsync();
 }
