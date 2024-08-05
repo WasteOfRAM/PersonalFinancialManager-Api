@@ -12,10 +12,10 @@ public class Account
     public Guid Id { get; set; }
 
     [MaxLength(10)]
-    public string Name { get; set; } = null!;
+    public required string Name { get; set; }
 
     [MaxLength(5)]
-    public string Currency { get; set; } = null!;
+    public required string Currency { get; set; }
 
     public AccountType AccountType { get; set; }
 
@@ -25,7 +25,7 @@ public class Account
     [Precision(19, 4)]
     public decimal Total { get; set; }
 
-    [MaxLength(100)]
+    [StringLength(maximumLength: 100)]
     public string? Description { get; set; }
 
     public Guid AppUserId { get; set; }

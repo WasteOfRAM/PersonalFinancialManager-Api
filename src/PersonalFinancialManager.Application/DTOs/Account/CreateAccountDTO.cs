@@ -7,17 +7,18 @@ public class CreateAccountDTO
 {
     [Required]
     [StringLength(maximumLength: 10)]
-    public string Name { get; set; } = null!;
+    public required string Name { get; set; }
 
     [Required]
-    public string Currency { get; set; } = null!;
+    public required string Currency { get; set; }
 
     [Required]
     [EnumDataType(typeof(AccountType))]
-    public string AccountType { get; set; } = null!;
+    public required string AccountType { get; set; }
 
     [Range(0.0, double.PositiveInfinity)]
     public decimal? Total { get; set; }
 
+    [StringLength(maximumLength: 100, MinimumLength = 2)]
     public string? Description { get; set; }
 }

@@ -4,13 +4,13 @@ public class AccountDTO
 {
     public Guid Id { get; set; }
 
-    public string Name { get; set; } = null!;
+    public required string Name { get; set; }
 
-    public string Currency { get; set; } = null!;
+    public required string Currency { get; set; }
 
-    public string AccountType { get; set; } = null!;
+    public required string AccountType { get; set; }
 
-    public string CreationDate { get; set; } = null!;
+    public required string CreationDate { get; set; }
 
     public decimal Total { get; set; }
 
