@@ -41,5 +41,28 @@ public static class AccountEndpoints
             return TypedResults.Ok(serviceResult.Data);
         })
             .MapToApiVersion(1);
+
+        accountRoutes.MapPut("/", async Task<Results<Ok<AccountDTO>, NotFound, ValidationProblem>> (UpdateAccountDTO updateAccountDTO, IAccountService accountService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult<AccountDTO> serviceResult = await accountService.UpdateAsync(updateAccountDTO, userId!);
+
+            if (!serviceResult.Success) 
+            {
+                if (serviceResult.Errors == null)
+                {
+                    return TypedResults.NotFound();
+                }
+                else
+                {
+                    return TypedResults.ValidationProblem(serviceResult.Errors);
+                }
+            }
+
+            return TypedResults.Ok(serviceResult.Data);
+        })
+            .MapToApiVersion(1)
+            .AddEndpointFilter<ModelValidationFilter<UpdateAccountDTO>>();
     }
 }
