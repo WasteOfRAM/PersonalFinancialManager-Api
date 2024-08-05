@@ -88,8 +88,45 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
         return result;
     }
 
-    public Task<ServiceResult> UpdateAsync(UpdateAccountDTO updateAccountDTO)
+    public async Task<ServiceResult<AccountDTO>> UpdateAsync(UpdateAccountDTO updateAccountDTO, string userId)
     {
-        throw new NotImplementedException();
+        Guid accountId = Guid.Parse(updateAccountDTO.Id);
+
+        Account? entity = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == accountId);
+        
+        if (entity == null)
+        {
+            return new() { Success = false };
+        }
+
+        if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == updateAccountDTO.Name))
+        {
+            return new() { Success = false, Errors = new() { { "DuplicateName", [$"Name '{updateAccountDTO.Name}' is already exists."] } } };
+        }
+
+        entity.Name = updateAccountDTO.Name;
+        entity.Currency = updateAccountDTO.Currency;
+        entity.AccountType = (AccountType)Enum.Parse(typeof(AccountType), updateAccountDTO.AccountType);
+        entity.Description = updateAccountDTO.Description;
+
+        accountRepository.Update(entity);
+        await accountRepository.SaveAsync();
+
+        ServiceResult<AccountDTO> result = new()
+        {
+            Success = true,
+            Data = new()
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Currency = entity.Currency,
+                AccountType = entity.AccountType.ToString(),
+                Description = entity.Description,
+                Total = entity.Total,
+                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
+            }
+        };
+
+        return result;
     }
 }
