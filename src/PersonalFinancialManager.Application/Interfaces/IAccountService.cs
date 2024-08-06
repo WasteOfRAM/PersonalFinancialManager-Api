@@ -13,5 +13,5 @@ public interface IAccountService
 
     Task<ServiceResult<AccountDTO>> UpdateAsync(UpdateAccountDTO updateAccountDTO, string userId);
 
-    Task<ServiceResult> DeleteAsync(Guid id);
+    Task<ServiceResult> DeleteAsync(Guid id, string userId);
 }

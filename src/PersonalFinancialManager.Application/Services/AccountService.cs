@@ -51,9 +51,19 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
         return result;
     }
 
-    public Task<ServiceResult> DeleteAsync(Guid id)
+    public async Task<ServiceResult> DeleteAsync(Guid id, string userId)
     {
-        throw new NotImplementedException();
+        Account? entity = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
+
+        if (entity == null)
+        {
+            return new() { Success = false };
+        }
+
+        accountRepository.Delete(entity);
+        await accountRepository.SaveAsync();
+
+        return new() { Success = true };
     }
 
     public Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel)
