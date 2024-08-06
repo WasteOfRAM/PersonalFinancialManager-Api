@@ -33,7 +33,7 @@ public static class AccountEndpoints
 
             ServiceResult<AccountDTO> serviceResult = await accountService.GetAsync(id, userId!);
 
-            if (!serviceResult.Success) 
+            if (!serviceResult.Success)
             {
                 return TypedResults.NotFound();
             }
@@ -48,7 +48,7 @@ public static class AccountEndpoints
 
             ServiceResult<AccountDTO> serviceResult = await accountService.UpdateAsync(updateAccountDTO, userId!);
 
-            if (!serviceResult.Success) 
+            if (!serviceResult.Success)
             {
                 if (serviceResult.Errors == null)
                 {
@@ -64,5 +64,20 @@ public static class AccountEndpoints
         })
             .MapToApiVersion(1)
             .AddEndpointFilter<ModelValidationFilter<UpdateAccountDTO>>();
+
+        accountRoutes.MapDelete("/{id:Guid}", async Task<Results<NoContent, NotFound>> (Guid id, IAccountService accountService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult result = await accountService.DeleteAsync(id, userId!);
+
+            if (!result.Success)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.NoContent();
+        })
+            .MapToApiVersion(1);
     }
 }
