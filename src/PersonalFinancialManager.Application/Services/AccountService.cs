@@ -66,9 +66,37 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
         return new() { Success = true };
     }
 
-    public Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel)
+    public async Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel, string userId)
     {
-        throw new NotImplementedException();
+        var items = await accountRepository.GetAllAsync(i => i.AppUserId.ToString() == userId, 
+            order: queryModel.Order,
+            orderBy: queryModel.OrderBy,
+            page: queryModel.Page ?? 1,
+            itemsPerPage: queryModel.ItemsPerPage);
+
+        return new()
+        {
+            Success = true,
+            Data = new QueryResponse<AccountDTO>
+            {
+                Search = queryModel.Search,
+                ItemsCount = null,
+                CurrentPage = queryModel.Page ?? 1,
+                ItemsPerPage = queryModel.ItemsPerPage,
+                Order = queryModel.Order,
+                OrderBy = queryModel.OrderBy,
+                Items = items.Select(i => new AccountDTO
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    Currency = i.Currency,
+                    AccountType = i.AccountType.ToString(),
+                    Description = i.Description,
+                    Total = i.Total,
+                    CreationDate = i.CreationDate.ToString("dd/MM/yyyy")
+                })
+            }
+        };
     }
 
     public async Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId)

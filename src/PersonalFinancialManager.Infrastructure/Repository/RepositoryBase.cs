@@ -23,24 +23,24 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
 
     public async Task<TEntity?> GetByIdAsync(Guid id) => await DbSet.FindAsync(id);
 
-    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false)
+    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false)
     {
-        return asNoTracking ? await DbSet.AsNoTracking().FirstOrDefaultAsync(predicate) :
-                              await DbSet.FirstOrDefaultAsync(predicate);
+        return asNoTracking ? await DbSet.AsNoTracking().FirstOrDefaultAsync(filter) :
+                              await DbSet.FirstOrDefaultAsync(filter);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? predicate = null, bool asNoTracking = false, int page = 1, int itemsPerPage = 0, string? order = null, string? orderBy = null)
+    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null,
+        bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
     {
-        var elements = predicate is not null ? DbSet.Where(predicate) : DbSet.AsQueryable();
+        var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
 
-        if (order != null && orderBy != null)
-            elements = elements.OrderBy(orderBy, order);
+        items = items.OrderBy(orderBy, order);
 
-        if (itemsPerPage > 0)
-            elements = elements.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+        if (itemsPerPage is not null && itemsPerPage > 0)
+            items = items.Skip((page - 1) * (int)itemsPerPage).Take((int)itemsPerPage);
 
-        return asNoTracking ? await elements.AsNoTracking().ToArrayAsync() :
-                              await elements.ToArrayAsync();
+        return asNoTracking ? await items.AsNoTracking().ToArrayAsync() :
+                              await items.ToArrayAsync();
     }
 
     public async Task AddAsync(TEntity entity) => await DbSet.AddAsync(entity);

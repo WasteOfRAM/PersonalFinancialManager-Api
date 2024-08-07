@@ -10,7 +10,7 @@ public class QueryResponse<T>
 
     public int? ItemsPerPage { get; set; }
 
-    public bool? Order { get; set; }
+    public string? Order { get; set; }
 
     public string? OrderBy { get; set; }
 
