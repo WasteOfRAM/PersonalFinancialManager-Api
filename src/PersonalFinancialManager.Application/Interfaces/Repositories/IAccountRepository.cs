@@ -1,4 +1,4 @@
-﻿namespace PersonalFinancialManager.Core.Interfaces.Repositories;
+﻿namespace PersonalFinancialManager.Application.Interfaces.Repositories;
 
 using PersonalFinancialManager.Core.Entities;
 

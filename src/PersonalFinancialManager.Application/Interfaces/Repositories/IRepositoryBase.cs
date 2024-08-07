@@ -1,5 +1,6 @@
-﻿namespace PersonalFinancialManager.Core.Interfaces.Repositories;
+﻿namespace PersonalFinancialManager.Application.Interfaces.Repositories;
 
+using PersonalFinancialManager.Application.Queries;
 using System.Linq.Expressions;
 
 public interface IRepositoryBase<TEntity> where TEntity : class
@@ -8,7 +9,7 @@ public interface IRepositoryBase<TEntity> where TEntity : class
 
     Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false);
 
-    Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null);
+    Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null);
 
     Task AddAsync(TEntity entity);
 

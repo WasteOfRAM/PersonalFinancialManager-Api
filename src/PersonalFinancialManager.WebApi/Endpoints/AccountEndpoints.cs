@@ -3,7 +3,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using PersonalFinancialManager.Application.DTOs.Account;
-using PersonalFinancialManager.Application.Interfaces;
+using PersonalFinancialManager.Application.Interfaces.Services;
+using PersonalFinancialManager.Application.Queries;
 using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.WebApi.Filters;
 using System.Security.Claims;

@@ -1,7 +1,8 @@
 ﻿namespace PersonalFinancialManager.Infrastructure.Repository;
 
 using Microsoft.EntityFrameworkCore;
-using PersonalFinancialManager.Core.Interfaces.Repositories;
+using PersonalFinancialManager.Application.Interfaces.Repositories;
+using PersonalFinancialManager.Application.Queries;
 using PersonalFinancialManager.Infrastructure.Data;
 using PersonalFinancialManager.Infrastructure.Extensions;
 using System;
@@ -29,18 +30,25 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
                               await DbSet.FirstOrDefaultAsync(filter);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null,
+    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null,
         bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
     {
         var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
+
+        QueryResult<TEntity> queryResult = new QueryResult<TEntity>()
+        {
+            ItemsCount = items.Count()
+        };
 
         items = items.OrderBy(orderBy, order);
 
         if (itemsPerPage is not null && itemsPerPage > 0)
             items = items.Skip((page - 1) * (int)itemsPerPage).Take((int)itemsPerPage);
 
-        return asNoTracking ? await items.AsNoTracking().ToArrayAsync() :
-                              await items.ToArrayAsync();
+        queryResult.Items = asNoTracking ? await items.AsNoTracking().ToArrayAsync() :
+                                           await items.ToArrayAsync();
+
+        return queryResult;
     }
 
     public async Task AddAsync(TEntity entity) => await DbSet.AddAsync(entity);

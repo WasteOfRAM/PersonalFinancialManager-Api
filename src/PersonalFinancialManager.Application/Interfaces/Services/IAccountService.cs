@@ -1,6 +1,7 @@
-﻿namespace PersonalFinancialManager.Application.Interfaces;
+﻿namespace PersonalFinancialManager.Application.Interfaces.Services;
 
 using PersonalFinancialManager.Application.DTOs.Account;
+using PersonalFinancialManager.Application.Queries;
 using PersonalFinancialManager.Application.ServiceModels;
 
 public interface IAccountService
