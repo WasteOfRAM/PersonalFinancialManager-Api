@@ -1,11 +1,12 @@
 ﻿namespace PersonalFinancialManager.Application.Services;
 
 using PersonalFinancialManager.Application.DTOs.Account;
-using PersonalFinancialManager.Application.Interfaces;
+using PersonalFinancialManager.Application.Interfaces.Repositories;
+using PersonalFinancialManager.Application.Interfaces.Services;
+using PersonalFinancialManager.Application.Queries;
 using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Core.Enumerations;
-using PersonalFinancialManager.Core.Interfaces.Repositories;
 using System;
 using System.Threading.Tasks;
 
@@ -68,11 +69,19 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
 
     public async Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel, string userId)
     {
-        var items = await accountRepository.GetAllAsync(i => i.AppUserId.ToString() == userId, 
+        var queryResult = await accountRepository.GetAllAsync(i => i.AppUserId.ToString() == userId, 
             order: queryModel.Order,
             orderBy: queryModel.OrderBy,
             page: queryModel.Page ?? 1,
             itemsPerPage: queryModel.ItemsPerPage);
+
+        string order = queryModel.Order?.ToUpper() switch
+        {
+            null => "ASC",
+            "ASC" => "ASC",
+            "DESC" => "DESC",
+            _ => "ASC"
+        };
 
         return new()
         {
@@ -80,12 +89,12 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
             Data = new QueryResponse<AccountDTO>
             {
                 Search = queryModel.Search,
-                ItemsCount = null,
+                ItemsCount = queryResult.ItemsCount,
                 CurrentPage = queryModel.Page ?? 1,
                 ItemsPerPage = queryModel.ItemsPerPage,
-                Order = queryModel.Order,
+                Order = order,
                 OrderBy = queryModel.OrderBy,
-                Items = items.Select(i => new AccountDTO
+                Items = queryResult.Items.Select(i => new AccountDTO
                 {
                     Id = i.Id,
                     Name = i.Name,

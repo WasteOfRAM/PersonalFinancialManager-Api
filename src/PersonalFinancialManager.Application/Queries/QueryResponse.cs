@@ -1,4 +1,4 @@
-﻿namespace PersonalFinancialManager.Application.ServiceModels;
+﻿namespace PersonalFinancialManager.Application.Queries;
 
 public class QueryResponse<T>
 {

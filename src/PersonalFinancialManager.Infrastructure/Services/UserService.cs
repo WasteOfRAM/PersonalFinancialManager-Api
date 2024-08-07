@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Identity;
 using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
-using PersonalFinancialManager.Application.Interfaces;
+using PersonalFinancialManager.Application.Interfaces.Services;
 using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using System.Threading.Tasks;
