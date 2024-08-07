@@ -40,6 +40,16 @@ public static class AccountEndpoints
 
             return TypedResults.Ok(serviceResult.Data);
         })
+        .MapToApiVersion(1);
+
+        accountRoutes.MapGet("/", async ([AsParameters] QueryModel query, IAccountService accountService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult<QueryResponse<AccountDTO>> serviceResult = await accountService.GetAllAsync(query, userId!);
+
+            return TypedResults.Ok(serviceResult.Data);
+        })
             .MapToApiVersion(1);
 
         accountRoutes.MapPut("/", async Task<Results<Ok<AccountDTO>, NotFound, ValidationProblem>> (UpdateAccountDTO updateAccountDTO, IAccountService accountService, HttpContext context) =>
