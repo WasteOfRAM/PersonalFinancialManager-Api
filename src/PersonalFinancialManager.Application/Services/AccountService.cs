@@ -74,11 +74,15 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
 
         if (!string.IsNullOrWhiteSpace(queryModel.Search))
         {
-            ParameterExpression param = filter.Parameters[0];
-            Expression<Func<Account, bool>> searchFilter = account => account.Name.Contains(queryModel.Search);
-            Expression body = Expression.AndAlso(filter.Body, Expression.Invoke(searchFilter, param));
-            
-            filter = Expression.Lambda<Func<Account, bool>>(body, param);
+            filter = account => account.AppUserId.ToString() == userId &&
+                                account.Name.Contains(queryModel.Search);
+
+            // No need for this for now!
+            //ParameterExpression param = filter.Parameters[0];
+            //Expression<Func<Account, bool>> searchFilter = account => account.Name.Contains(queryModel.Search);
+            //Expression body = Expression.AndAlso(filter.Body, Expression.Invoke(searchFilter, param));
+
+            //filter = Expression.Lambda<Func<Account, bool>>(body, param);
         }
 
         var queryResult = await accountRepository.GetAllAsync(filter,
@@ -160,7 +164,7 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
 
         if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == updateAccountDTO.Name))
         {
-            return new() { Success = false, Errors = new() { { "DuplicateName", [$"Name '{updateAccountDTO.Name}' is already exists."] } } };
+            return new() { Success = false, Errors = new() { { "DuplicateName", [$"Name '{updateAccountDTO.Name}' already exists."] } } };
         }
 
         entity.Name = updateAccountDTO.Name;
