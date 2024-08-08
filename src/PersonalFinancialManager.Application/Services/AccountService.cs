@@ -8,6 +8,7 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Core.Enumerations;
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 public class AccountService(IAccountRepository accountRepository) : IAccountService
@@ -69,7 +70,18 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
 
     public async Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel, string userId)
     {
-        var queryResult = await accountRepository.GetAllAsync(i => i.AppUserId.ToString() == userId, 
+        Expression<Func<Account, bool>>? filter = account => account.AppUserId.ToString() == userId;
+
+        if (!string.IsNullOrWhiteSpace(queryModel.Search))
+        {
+            ParameterExpression param = filter.Parameters[0];
+            Expression<Func<Account, bool>> searchFilter = account => account.Name.Contains(queryModel.Search);
+            Expression body = Expression.AndAlso(filter.Body, Expression.Invoke(searchFilter, param));
+            
+            filter = Expression.Lambda<Func<Account, bool>>(body, param);
+        }
+
+        var queryResult = await accountRepository.GetAllAsync(filter,
             order: queryModel.Order,
             orderBy: queryModel.OrderBy,
             page: queryModel.Page ?? 1,
@@ -140,7 +152,7 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
         Guid accountId = Guid.Parse(updateAccountDTO.Id);
 
         Account? entity = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == accountId);
-        
+
         if (entity == null)
         {
             return new() { Success = false };

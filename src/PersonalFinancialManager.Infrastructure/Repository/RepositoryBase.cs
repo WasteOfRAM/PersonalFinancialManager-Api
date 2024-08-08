@@ -35,7 +35,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     {
         var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
 
-        QueryResult<TEntity> queryResult = new QueryResult<TEntity>()
+        QueryResult<TEntity> queryResult = new()
         {
             ItemsCount = items.Count()
         };
