@@ -1,7 +1,8 @@
 ﻿namespace PersonalFinancialManager.Infrastructure.Repository;
 
 using Microsoft.EntityFrameworkCore;
-using PersonalFinancialManager.Core.Interfaces.Repositories;
+using PersonalFinancialManager.Application.Interfaces.Repositories;
+using PersonalFinancialManager.Application.Queries;
 using PersonalFinancialManager.Infrastructure.Data;
 using PersonalFinancialManager.Infrastructure.Extensions;
 using System;
@@ -23,24 +24,31 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
 
     public async Task<TEntity?> GetByIdAsync(Guid id) => await DbSet.FindAsync(id);
 
-    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false)
+    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false)
     {
-        return asNoTracking ? await DbSet.AsNoTracking().FirstOrDefaultAsync(predicate) :
-                              await DbSet.FirstOrDefaultAsync(predicate);
+        return asNoTracking ? await DbSet.AsNoTracking().FirstOrDefaultAsync(filter) :
+                              await DbSet.FirstOrDefaultAsync(filter);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? predicate = null, bool asNoTracking = false, int page = 1, int itemsPerPage = 0, string? order = null, string? orderBy = null)
+    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null,
+        bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
     {
-        var elements = predicate is not null ? DbSet.Where(predicate) : DbSet.AsQueryable();
+        var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
 
-        if (order != null && orderBy != null)
-            elements = elements.OrderBy(orderBy, order);
+        QueryResult<TEntity> queryResult = new()
+        {
+            ItemsCount = items.Count()
+        };
 
-        if (itemsPerPage > 0)
-            elements = elements.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+        items = items.OrderBy(orderBy, order);
 
-        return asNoTracking ? await elements.AsNoTracking().ToArrayAsync() :
-                              await elements.ToArrayAsync();
+        if (itemsPerPage is not null && itemsPerPage > 0)
+            items = items.Skip((page - 1) * (int)itemsPerPage).Take((int)itemsPerPage);
+
+        queryResult.Items = asNoTracking ? await items.AsNoTracking().ToArrayAsync() :
+                                           await items.ToArrayAsync();
+
+        return queryResult;
     }
 
     public async Task AddAsync(TEntity entity) => await DbSet.AddAsync(entity);
@@ -48,6 +56,8 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     public void Delete(TEntity entity) => DbSet.Remove(entity);
 
     public void Update(TEntity entity) => DbSet.Update(entity);
+
+    public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression) => DbSet.AnyAsync(expression);
 
     public async Task<int> SaveAsync() => await dbContext.SaveChangesAsync();
 }

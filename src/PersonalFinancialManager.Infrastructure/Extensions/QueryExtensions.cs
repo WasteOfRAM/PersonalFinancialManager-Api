@@ -5,9 +5,9 @@ using System.Reflection;
 
 public static class QueryExtensions
 {
-    public static IOrderedQueryable<TSource> OrderBy<TSource>(this IQueryable<TSource> source, string propertyName, string orderType)
+    public static IOrderedQueryable<TSource> OrderBy<TSource>(this IQueryable<TSource> source, string? propertyName, string? orderType)
     {
-        PropertyInfo? propertyInfo = typeof(TSource).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+        PropertyInfo? propertyInfo = typeof(TSource).GetProperty(propertyName ?? "Id", BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
         ArgumentNullException.ThrowIfNull(propertyInfo, nameof(propertyInfo));
 
@@ -15,9 +15,10 @@ public static class QueryExtensions
         MemberExpression propertyAccess = Expression.Property(parameter, propertyInfo);
         LambdaExpression orderByExpression = Expression.Lambda(propertyAccess, parameter);
 
-        string methodName = orderType.ToUpper() switch
+        string methodName = orderType?.ToUpper() switch
         {
             "ASC" => "OrderBy",
+            null => "OrderBy",
             "DESC" => "OrderByDescending",
             _ => "OrderBy"
         };
@@ -32,7 +33,7 @@ public static class QueryExtensions
         return (IOrderedQueryable<TSource>)source.Provider.CreateQuery<TSource>(resultExpression);
     }
 
-    public static IOrderedQueryable<TSource> ThanBy<TSource>(this IQueryable<TSource> source, string propertyName, string orderType)
+    public static IOrderedQueryable<TSource> ThanBy<TSource>(this IQueryable<TSource> source, string propertyName, string? orderType)
     {
         PropertyInfo? propertyInfo = typeof(TSource).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
@@ -42,9 +43,10 @@ public static class QueryExtensions
         MemberExpression propertyAccess = Expression.Property(parameter, propertyInfo);
         LambdaExpression orderByExpression = Expression.Lambda(propertyAccess, parameter);
 
-        string methodName = orderType.ToUpper() switch
+        string methodName = orderType?.ToUpper() switch
         {
             "ASC" => "ThanBy",
+            null => "ThanBy",
             "DESC" => "ThanByDescending",
             _ => "OrderBy"
         };

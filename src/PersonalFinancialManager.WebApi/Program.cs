@@ -39,11 +39,12 @@ ApiVersionSet apiVersionSet = app.NewApiVersionSet()
     .ReportApiVersions()
     .Build();
 
-RouteGroupBuilder routeGroup = app
+RouteGroupBuilder routesGroup = app
     .MapGroup("api/v{apiVersion:apiVersion}")
     .WithApiVersionSet(apiVersionSet)
     .RequireAuthorization();
 
-routeGroup.MapUserEndpoints();
+routesGroup.MapUserEndpoints();
+routesGroup.MapAccountEndpoints();
 
 app.Run();

@@ -13,7 +13,7 @@ public class ModelValidationFilter<TModel> : IEndpointFilter where TModel : clas
 
         if (!Validator.TryValidateObject(model!, new ValidationContext(model!), validationResults, true))
         {
-            var errors = validationResults
+           var errors = validationResults
                 .SelectMany(validationResult => validationResult.MemberNames, (validationResult, memberName) => new { memberName, validationResult.ErrorMessage })
                 .GroupBy(x => x.memberName)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage!).ToArray());
