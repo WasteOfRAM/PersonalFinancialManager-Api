@@ -15,6 +15,8 @@ builder.Services.AddTokenService(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
 
+builder.Services.AddRepositories();
+
 builder.Services.AddApiVersioning();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -37,11 +39,12 @@ ApiVersionSet apiVersionSet = app.NewApiVersionSet()
     .ReportApiVersions()
     .Build();
 
-RouteGroupBuilder routeGroup = app
+RouteGroupBuilder routesGroup = app
     .MapGroup("api/v{apiVersion:apiVersion}")
     .WithApiVersionSet(apiVersionSet)
     .RequireAuthorization();
 
-routeGroup.MapUserEndpoints();
+routesGroup.MapUserEndpoints();
+routesGroup.MapAccountEndpoints();
 
 app.Run();

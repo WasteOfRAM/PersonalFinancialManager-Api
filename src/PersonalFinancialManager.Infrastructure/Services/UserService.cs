@@ -3,12 +3,12 @@
 using Microsoft.AspNetCore.Identity;
 using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
-using PersonalFinancialManager.Application.Interfaces;
+using PersonalFinancialManager.Application.Interfaces.Services;
 using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using System.Threading.Tasks;
 
-public class IdentityUserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : IUserService
+public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : IUserService
 {
     public async Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO)
     {
@@ -58,7 +58,7 @@ public class IdentityUserService(UserManager<AppUser> userManager, SignInManager
                 user.RefreshToken = token.RefreshToken;
                 // TODO: Change the expires time for something longer after testing
                 // TODO: Move to hardcoded value to constants
-                user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(5);
+                user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(5);
 
                 await userManager.UpdateAsync(user);
 
