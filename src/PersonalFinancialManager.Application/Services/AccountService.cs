@@ -17,7 +17,7 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
     {
         if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == createAccountDTO.Name))
         {
-            return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { "DuplicateName", [$"Name '{createAccountDTO.Name}' is already exists."] } } };
+            return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { "DuplicateName", [$"Name '{createAccountDTO.Name}' already exists."] } } };
         }
 
         Account entity = new()
