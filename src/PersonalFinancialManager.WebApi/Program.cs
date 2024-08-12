@@ -46,5 +46,6 @@ RouteGroupBuilder routesGroup = app
 
 routesGroup.MapUserEndpoints();
 routesGroup.MapAccountEndpoints();
+routesGroup.MapTransactionEndpoints();
 
 app.Run();
