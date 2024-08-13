@@ -10,29 +10,44 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : class
+public class RepositoryBase<TEntity>(AppDbContext dbContext) : IRepositoryBase<TEntity> where TEntity : class
 {
-    private readonly AppDbContext dbContext;
-    protected DbSet<TEntity> DbSet { get; set; }
-
-    public RepositoryBase(AppDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-        DbSet = dbContext.Set<TEntity>();
-    }
+    protected DbSet<TEntity> DbSet { get; set; } = dbContext.Set<TEntity>();
 
     public async Task<TEntity?> GetByIdAsync(Guid id) => await DbSet.FindAsync(id);
 
-    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false)
+    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false, string? includeProperty = null)
     {
-        return asNoTracking ? await DbSet.AsNoTracking().FirstOrDefaultAsync(filter) :
-                              await DbSet.FirstOrDefaultAsync(filter);
+        var items = DbSet.AsQueryable();
+
+        if (includeProperty is not null)
+        {
+            string? propertyName = typeof(TEntity).GetProperty(includeProperty)?.Name;
+
+            if (propertyName is not null)
+            {
+                items = items.Include(propertyName);
+            }
+        }
+
+        return asNoTracking ? await items.AsNoTracking().FirstOrDefaultAsync(filter) :
+                              await items.FirstOrDefaultAsync(filter);
     }
 
-    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null,
-        bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
+    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, string? includeProperty = null, 
+        int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
     {
         var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
+
+        if (includeProperty is not null)
+        {
+            string? propertyName = typeof(TEntity).GetProperty(includeProperty)?.Name;
+
+            if (propertyName is not null)
+            {
+                items = items.Include(propertyName);
+            }
+        }
 
         QueryResult<TEntity> queryResult = new()
         {

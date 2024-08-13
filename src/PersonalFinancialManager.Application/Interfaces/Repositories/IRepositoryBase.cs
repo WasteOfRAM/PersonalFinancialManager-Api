@@ -7,9 +7,10 @@ public interface IRepositoryBase<TEntity> where TEntity : class
 {
     Task<TEntity?> GetByIdAsync(Guid id);
 
-    Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false);
+    Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, bool asNoTracking = false, string? includeProperty = null);
 
-    Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null);
+    Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, string? includeProperty = null,
+        int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null);
 
     Task AddAsync(TEntity entity);
 
