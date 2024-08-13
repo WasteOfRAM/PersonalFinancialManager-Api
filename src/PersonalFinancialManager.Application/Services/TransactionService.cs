@@ -58,13 +58,41 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
     }
 
     public Task<ServiceResult<QueryResponse<TransactionDTO>>> GetAllAsync(QueryModel queryModel, string userId)
-    {
+    {   
         throw new NotImplementedException();
     }
 
-    public Task<ServiceResult<TransactionDTO>> GetAsync(Guid id, string userId)
+    public async Task<ServiceResult<TransactionDTO>> GetAsync(Guid id, string userId)
     {
-        throw new NotImplementedException();
+        Transaction? transaction = await transactionRepository.GetByIdAsync(id);
+
+        if (transaction == null)
+        {
+            return new ServiceResult<TransactionDTO> { Success = false };
+        }
+
+        Account? account = await accountRepository.GetAsync(a => a.AppUserId.ToString() == userId && a.Id == transaction.AccountId);
+
+        if (account == null)
+        {
+            return new ServiceResult<TransactionDTO> { Success = false };
+        }
+
+        ServiceResult<TransactionDTO> result = new()
+        {
+            Success = true,
+            Data = new TransactionDTO
+            {
+                Id = transaction.Id,
+                TransactionType = transaction.TransactionType.ToString(),
+                Amount = transaction.Amount,
+                Description = transaction.Description,
+                AccountId = transaction.AccountId,
+                CreationDate = transaction.CreationDate.ToString("dd/MM/yyyy")
+            }
+        };
+
+        return result;
     }
 
     public Task<ServiceResult<TransactionDTO>> UpdateAsync(UpdateTransactionDTO updateTransactionDTO, string userId)
