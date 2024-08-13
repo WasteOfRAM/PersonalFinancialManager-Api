@@ -24,5 +24,20 @@ public static class TransactionEndpoints
         })
             .MapToApiVersion(1)
             .AddEndpointFilter<ModelValidationFilter<CreateTransactionDTO>>();
+
+        transactionRoutes.MapGet("/{id:Guid}", async Task<Results<Ok<TransactionDTO>, NotFound>> (Guid id, ITransactionService transactionService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult<TransactionDTO> serviceResult = await transactionService.GetAsync(id, userId!);
+
+            if (!serviceResult.Success)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Ok(serviceResult.Data);
+        })
+            .MapToApiVersion(1);
     }
 }
