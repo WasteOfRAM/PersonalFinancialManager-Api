@@ -52,14 +52,59 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         return result;
     }
 
-    public Task<ServiceResult> DeleteAsync(Guid id, string userId)
+    public async Task<ServiceResult> DeleteAsync(Guid id, string userId)
     {
-        throw new NotImplementedException();
+        var transaction = await transactionRepository.GetAsync(t => t.Id == id && t.Account!.AppUserId.ToString() == userId, includeProperty: "Account");
+
+        if (transaction == null)
+        {
+            return new() { Success = false };
+        }
+
+        var transactionType = transaction.TransactionType == TransactionType.Deposit ? TransactionType.Withdraw : TransactionType.Deposit;
+
+        accountRepository.UpdateAccountTotal(transaction.Account!, transactionType, transaction.Amount);
+
+        transactionRepository.Delete(transaction);
+
+        _ = await transactionRepository.SaveAsync();
+
+        return new() { Success = true };
     }
 
-    public Task<ServiceResult<QueryResponse<TransactionDTO>>> GetAllAsync(QueryModel queryModel, string userId)
-    {   
-        throw new NotImplementedException();
+    public async Task<ServiceResult<QueryResponse<TransactionDTO>>> GetAllAsync(QueryModel queryModel, string userId)
+    {
+        var transactions = await transactionRepository.GetAllAsync(t => t.Account!.AppUserId.ToString() == userId,
+            order: queryModel.Order ?? "DESC",
+            orderBy: queryModel.OrderBy ?? "CreationDate",
+            itemsPerPage: queryModel.ItemsPerPage,
+            page: queryModel.Page ?? 1,
+            includeProperty: "Account");
+
+        ServiceResult<QueryResponse<TransactionDTO>> result = new()
+        {
+            Success = true,
+            Data = new QueryResponse<TransactionDTO>
+            {
+                Items = transactions.Items.Select(t => new TransactionDTO
+                {
+                    AccountId = t.AccountId,
+                    TransactionType = t.TransactionType.ToString(),
+                    Amount = t.Amount,
+                    Description = t.Description,
+                    CreationDate = t.CreationDate.ToString("dd/MM/yyyy"),
+                    Id = t.Id
+                }),
+                ItemsCount = transactions.ItemsCount,
+                CurrentPage = queryModel.Page ?? 1,
+                Search = queryModel.Search,
+                Order = queryModel.Order ?? "DESC",
+                OrderBy = queryModel.OrderBy ?? "CreationDate",
+                ItemsPerPage = queryModel.ItemsPerPage
+            }
+        };
+
+        return result;
     }
 
     public async Task<ServiceResult<TransactionDTO>> GetAsync(Guid id, string userId)
@@ -95,8 +140,47 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         return result;
     }
 
-    public Task<ServiceResult<TransactionDTO>> UpdateAsync(UpdateTransactionDTO updateTransactionDTO, string userId)
+    public async Task<ServiceResult<TransactionDTO>> UpdateAsync(UpdateTransactionDTO updateTransactionDTO, string userId)
     {
-        throw new NotImplementedException();
+        var transaction = await transactionRepository.GetAsync(t => t.Id.ToString() == updateTransactionDTO.Id && 
+                t.Account!.AppUserId.ToString() == userId &&
+                t.AccountId.ToString() == updateTransactionDTO.AccountId,
+                includeProperty: "Account");
+
+        if (transaction == null)
+        {
+            return new() { Success = false };
+        }
+
+        // Reverting the account total to before the transaction was created.
+        var transactionType = transaction.TransactionType == TransactionType.Deposit ? TransactionType.Withdraw : TransactionType.Deposit;
+        accountRepository.UpdateAccountTotal(transaction.Account!, transactionType, transaction.Amount);
+
+        // Updating the transaction.
+        transaction.TransactionType = (TransactionType)Enum.Parse(typeof(TransactionType), updateTransactionDTO.TransactionType);
+        transaction.Amount = updateTransactionDTO.Amount;
+        transaction.Description = updateTransactionDTO.Description;
+        transactionRepository.Update(transaction);
+
+        // Updating the account with the updated transaction.
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.TransactionType, transaction.Amount);
+
+        _ = await transactionRepository.SaveAsync();
+
+        ServiceResult<TransactionDTO> result = new() 
+        {
+            Success = true,
+            Data = new TransactionDTO()
+            {
+                Id = transaction.Id,
+                TransactionType = transaction.TransactionType.ToString(),
+                Amount = transaction.Amount,
+                Description = transaction.Description,
+                AccountId = transaction.AccountId,
+                CreationDate = transaction.CreationDate.ToString("dd/MM/yyyy")
+            }
+        };
+
+        return result;
     }
 }
