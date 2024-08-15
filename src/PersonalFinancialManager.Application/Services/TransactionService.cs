@@ -8,6 +8,7 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Core.Enumerations;
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 public class TransactionService(ITransactionRepository transactionRepository, IAccountRepository accountRepository) : ITransactionService
@@ -74,7 +75,15 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
 
     public async Task<ServiceResult<QueryResponse<TransactionDTO>>> GetAllAsync(QueryModel queryModel, string userId)
     {
-        var transactions = await transactionRepository.GetAllAsync(t => t.Account!.AppUserId.ToString() == userId,
+        Expression<Func<Transaction, bool>>? filter = transaction => transaction.Account!.AppUserId.ToString() == userId;
+
+        if (!string.IsNullOrWhiteSpace(queryModel.Search))
+        {
+            filter = transaction => transaction.Account!.AppUserId.ToString() == userId &&
+                                    transaction.Description != null ? transaction.Description.Contains(queryModel.Search) : false;
+        }
+
+        var transactions = await transactionRepository.GetAllAsync(filter,
             order: queryModel.Order ?? "DESC",
             orderBy: queryModel.OrderBy ?? "CreationDate",
             itemsPerPage: queryModel.ItemsPerPage,
