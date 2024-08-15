@@ -22,31 +22,21 @@ public class RepositoryBase<TEntity>(AppDbContext dbContext) : IRepositoryBase<T
 
         if (includeProperty is not null)
         {
-            string? propertyName = typeof(TEntity).GetProperty(includeProperty)?.Name;
-
-            if (propertyName is not null)
-            {
-                items = items.Include(propertyName);
-            }
+            items = items.Include(includeProperty);
         }
 
         return asNoTracking ? await items.AsNoTracking().FirstOrDefaultAsync(filter) :
                               await items.FirstOrDefaultAsync(filter);
     }
 
-    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, string? includeProperty = null, 
+    public async Task<QueryResult<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, bool asNoTracking = false, string? includeProperty = null,
         int page = 1, int? itemsPerPage = null, string? order = null, string? orderBy = null)
     {
         var items = filter is not null ? DbSet.Where(filter) : DbSet.AsQueryable();
 
         if (includeProperty is not null)
         {
-            string? propertyName = typeof(TEntity).GetProperty(includeProperty)?.Name;
-
-            if (propertyName is not null)
-            {
-                items = items.Include(propertyName);
-            }
+            items = items.Include(includeProperty);
         }
 
         QueryResult<TEntity> queryResult = new()
