@@ -1,6 +1,7 @@
 ﻿namespace PersonalFinancialManager.Application.Services;
 
 using PersonalFinancialManager.Application.DTOs.Account;
+using PersonalFinancialManager.Application.DTOs.Transaction;
 using PersonalFinancialManager.Application.Interfaces.Repositories;
 using PersonalFinancialManager.Application.Interfaces.Services;
 using PersonalFinancialManager.Application.Queries;
@@ -11,7 +12,7 @@ using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-public class AccountService(IAccountRepository accountRepository) : IAccountService
+public class AccountService(IAccountRepository accountRepository, ITransactionRepository transactionRepository) : IAccountService
 {
     public async Task<ServiceResult<AccountDTO>> CreateAsync(string userId, CreateAccountDTO createAccountDTO)
     {
@@ -76,13 +77,6 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
         {
             filter = account => account.AppUserId.ToString() == userId &&
                                 account.Name.Contains(queryModel.Search);
-
-            // No need for this for now!
-            //ParameterExpression param = filter.Parameters[0];
-            //Expression<Func<Account, bool>> searchFilter = account => account.Name.Contains(queryModel.Search);
-            //Expression body = Expression.AndAlso(filter.Body, Expression.Invoke(searchFilter, param));
-
-            //filter = Expression.Lambda<Func<Account, bool>>(body, param);
         }
 
         var queryResult = await accountRepository.GetAllAsync(filter,
@@ -99,7 +93,7 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
             _ => "ASC"
         };
 
-        return new()
+        ServiceResult<QueryResponse<AccountDTO>> result = new()
         {
             Success = true,
             Data = new QueryResponse<AccountDTO>
@@ -122,6 +116,8 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
                 })
             }
         };
+
+        return result;
     }
 
     public async Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId)
@@ -146,6 +142,68 @@ public class AccountService(IAccountRepository accountRepository) : IAccountServ
                 Total = entity.Total,
                 CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
             }
+        };
+
+        return result;
+    }
+
+    public async Task<ServiceResult<AccountWithTransactionsDTO>> GetWithTransactionsAsync(Guid id, QueryModel transactionsQuery, string userId)
+    {
+        Account? account = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
+
+        if (account == null)
+        {
+            return new() { Success = false, Errors = new() { { "NotFound", ["Recourse with given id not found."] } } };
+        }
+
+        Expression<Func<Transaction, bool>>? filter = transaction => transaction.AccountId == id;
+
+        if (!string.IsNullOrWhiteSpace(transactionsQuery.Search))
+        {
+            filter = transaction => transaction.AccountId == id &&
+                                    transaction.Description != null ? transaction.Description.Contains(transactionsQuery.Search) : false;
+        }
+
+        var queryResult = await transactionRepository.GetAllAsync(filter,
+            order: transactionsQuery.Order ?? "DESC",
+            orderBy: transactionsQuery.OrderBy ?? "CreationDate",
+            itemsPerPage: transactionsQuery.ItemsPerPage,
+            page: transactionsQuery.Page ?? 1);
+
+        AccountWithTransactionsDTO accountWithTransactionsDTO = new()
+        {
+            Id = account.Id,
+            Name = account.Name,
+            Currency = account.Currency,
+            AccountType = account.AccountType.ToString(),
+            Description = account.Description,
+            Total = account.Total,
+            CreationDate = account.CreationDate.ToString("dd/MM/yyyy"),
+            Transactions = new QueryResponse<TransactionDTO>()
+            {
+                Items = queryResult.Items.Select(t => new TransactionDTO
+                {
+                    Id = t.Id,
+                    AccountId = t.AccountId,
+                    TransactionType = t.TransactionType.ToString(),
+                    Amount = t.Amount,
+                    Description = t.Description,
+                    CreationDate = t.CreationDate.ToString("dd/MM/yyyy")
+                }),
+                ItemsCount = queryResult.ItemsCount,
+                CurrentPage = transactionsQuery.Page ?? 1,
+                Search = transactionsQuery.Search,
+                Order = transactionsQuery.Order ?? "DESC",
+                OrderBy = transactionsQuery.OrderBy ?? "CreationDate",
+                ItemsPerPage = transactionsQuery.ItemsPerPage
+            }
+
+        };
+
+        ServiceResult<AccountWithTransactionsDTO> result = new()
+        {
+            Success = true,
+            Data = accountWithTransactionsDTO
         };
 
         return result;

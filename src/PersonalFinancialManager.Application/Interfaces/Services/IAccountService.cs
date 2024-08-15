@@ -10,6 +10,8 @@ public interface IAccountService
 
     Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId);
 
+    Task<ServiceResult<AccountWithTransactionsDTO>> GetWithTransactionsAsync(Guid id, QueryModel transactionsQuery, string userId);
+
     Task<ServiceResult<QueryResponse<AccountDTO>>> GetAllAsync(QueryModel queryModel, string userId);
 
     Task<ServiceResult<AccountDTO>> UpdateAsync(UpdateAccountDTO updateAccountDTO, string userId);
