@@ -21,7 +21,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { "DuplicateName", [$"Name '{createAccountDTO.Name}' already exists."] } } };
         }
 
-        Account entity = new()
+        Account accountEntity = new()
         {
             Name = createAccountDTO.Name,
             Currency = createAccountDTO.Currency,
@@ -32,7 +32,21 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             AppUserId = new Guid(userId)
         };
 
-        await accountRepository.AddAsync(entity);
+        await accountRepository.AddAsync(accountEntity);
+
+        if (createAccountDTO.Total is not null && createAccountDTO.Total > 0.0m)
+        {
+            Transaction transaction = new()
+            {
+                AccountId = accountEntity.Id,
+                TransactionType = TransactionType.Deposit,
+                Amount = accountEntity.Total,
+                Description = "Automated transaction on account creation.",
+                CreationDate = accountEntity.CreationDate
+            };
+
+            await transactionRepository.AddAsync(transaction);
+        }
 
         _ = await accountRepository.SaveAsync();
 
@@ -41,13 +55,13 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             Success = true,
             Data = new()
             {
-                Id = entity.Id,
-                Name = entity.Name,
-                Currency = entity.Currency,
-                AccountType = entity.AccountType.ToString(),
-                Description = entity.Description,
-                Total = entity.Total,
-                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
+                Id = accountEntity.Id,
+                Name = accountEntity.Name,
+                Currency = accountEntity.Currency,
+                AccountType = accountEntity.AccountType.ToString(),
+                Description = accountEntity.Description,
+                Total = accountEntity.Total,
+                CreationDate = accountEntity.CreationDate.ToString("dd/MM/yyyy")
             }
         };
 
