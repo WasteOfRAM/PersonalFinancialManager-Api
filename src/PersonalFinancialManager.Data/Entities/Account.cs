@@ -6,26 +6,28 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using static PersonalFinancialManager.Core.Constants.ValidationConstants;
+
 public class Account
 {
     [Key]
     public Guid Id { get; set; }
 
-    [MaxLength(10)]
+    [StringLength(maximumLength: AccountConstants.NameMaxLength)]
     public required string Name { get; set; }
 
-    [MaxLength(5)]
+    [StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
     public required string Currency { get; set; }
 
     public AccountType AccountType { get; set; }
 
     public DateTime CreationDate { get; set; }
 
-    [DefaultValue(0.0)]
-    [Precision(19, 4)]
+    [DefaultValue(CommonConstants.MoneyDefaultValue)]
+    [Precision(DecimalPrecisionConstant.Integer, DecimalPrecisionConstant.Fraction)]
     public decimal Total { get; set; }
 
-    [StringLength(maximumLength: 100)]
+    [StringLength(maximumLength: CommonConstants.DescriptionMaxLength)]
     public string? Description { get; set; }
 
     public Guid AppUserId { get; set; }
