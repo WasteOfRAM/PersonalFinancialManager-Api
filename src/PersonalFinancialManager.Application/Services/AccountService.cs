@@ -12,13 +12,16 @@ using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
+using static PersonalFinancialManager.Application.Constants.ApplicationCommonConstants;
+using static PersonalFinancialManager.Application.Constants.ApplicationValidationMessages;
+
 public class AccountService(IAccountRepository accountRepository, ITransactionRepository transactionRepository) : IAccountService
 {
     public async Task<ServiceResult<AccountDTO>> CreateAsync(string userId, CreateAccountDTO createAccountDTO)
     {
         if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == createAccountDTO.Name))
         {
-            return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { "DuplicateName", [$"Name '{createAccountDTO.Name}' already exists."] } } };
+            return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { ErrorMessages.DuplicateName.Code, [string.Format(ErrorMessages.DuplicateName.Description, createAccountDTO.Name)] } } };
         }
 
         Account accountEntity = new()
@@ -61,7 +64,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                 AccountType = accountEntity.AccountType.ToString(),
                 Description = accountEntity.Description,
                 Total = accountEntity.Total,
-                CreationDate = accountEntity.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = accountEntity.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 
@@ -126,7 +129,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                     AccountType = i.AccountType.ToString(),
                     Description = i.Description,
                     Total = i.Total,
-                    CreationDate = i.CreationDate.ToString("dd/MM/yyyy")
+                    CreationDate = i.CreationDate.ToString(DateTimeStringFormat)
                 })
             }
         };
@@ -140,7 +143,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 
         if (entity == null)
         {
-            return new() { Success = false, Errors = new() { { "NotFound", ["Recourse with given id not found."] } } };
+            return new() { Success = false };
         }
 
         ServiceResult<AccountDTO> result = new()
@@ -154,7 +157,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                 AccountType = entity.AccountType.ToString(),
                 Description = entity.Description,
                 Total = entity.Total,
-                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 
@@ -167,7 +170,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 
         if (account == null)
         {
-            return new() { Success = false, Errors = new() { { "NotFound", ["Recourse with given id not found."] } } };
+            return new() { Success = false };
         }
 
         Expression<Func<Transaction, bool>>? filter = transaction => transaction.AccountId == id;
@@ -192,7 +195,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             AccountType = account.AccountType.ToString(),
             Description = account.Description,
             Total = account.Total,
-            CreationDate = account.CreationDate.ToString("dd/MM/yyyy"),
+            CreationDate = account.CreationDate.ToString(DateTimeStringFormat),
             Transactions = new QueryResponse<TransactionDTO>()
             {
                 Items = queryResult.Items.Select(t => new TransactionDTO
@@ -202,7 +205,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                     TransactionType = t.TransactionType.ToString(),
                     Amount = t.Amount,
                     Description = t.Description,
-                    CreationDate = t.CreationDate.ToString("dd/MM/yyyy")
+                    CreationDate = t.CreationDate.ToString(DateTimeStringFormat)
                 }),
                 ItemsCount = queryResult.ItemsCount,
                 CurrentPage = transactionsQuery.Page ?? 1,
@@ -236,7 +239,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 
         if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == updateAccountDTO.Name))
         {
-            return new() { Success = false, Errors = new() { { "DuplicateName", [$"Name '{updateAccountDTO.Name}' already exists."] } } };
+            return new() { Success = false, Errors = new() { { ErrorMessages.DuplicateName.Code, [string.Format(ErrorMessages.DuplicateName.Description, updateAccountDTO.Name)] } } };
         }
 
         entity.Name = updateAccountDTO.Name;
@@ -258,7 +261,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                 AccountType = entity.AccountType.ToString(),
                 Description = entity.Description,
                 Total = entity.Total,
-                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 

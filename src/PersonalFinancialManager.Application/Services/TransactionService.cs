@@ -11,6 +11,9 @@ using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
+using static PersonalFinancialManager.Application.Constants.ApplicationCommonConstants;
+using static PersonalFinancialManager.Application.Constants.ApplicationValidationMessages;
+
 public class TransactionService(ITransactionRepository transactionRepository, IAccountRepository accountRepository) : ITransactionService
 {
     public async Task<ServiceResult<TransactionDTO>> CreateAsync(CreateTransactionDTO createTransactionDTO, string userId)
@@ -19,7 +22,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
 
         if (account is null)
         {
-            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { "AccountId", ["Account with given Id does not exist."] } } };
+            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.AccountId.Code, [ErrorMessages.AccountId.Description] } } };
         }
 
         Transaction entity = new()
@@ -46,7 +49,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
                 Amount = entity.Amount,
                 Description = entity.Description,
                 AccountId = account.Id,
-                CreationDate = entity.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 
@@ -101,7 +104,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
                     TransactionType = t.TransactionType.ToString(),
                     Amount = t.Amount,
                     Description = t.Description,
-                    CreationDate = t.CreationDate.ToString("dd/MM/yyyy"),
+                    CreationDate = t.CreationDate.ToString(DateTimeStringFormat),
                     Id = t.Id
                 }),
                 ItemsCount = transactions.ItemsCount,
@@ -142,7 +145,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
                 Amount = transaction.Amount,
                 Description = transaction.Description,
                 AccountId = transaction.AccountId,
-                CreationDate = transaction.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = transaction.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 
@@ -151,7 +154,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
 
     public async Task<ServiceResult<TransactionDTO>> UpdateAsync(UpdateTransactionDTO updateTransactionDTO, string userId)
     {
-        var transaction = await transactionRepository.GetAsync(t => t.Id.ToString() == updateTransactionDTO.Id && 
+        var transaction = await transactionRepository.GetAsync(t => t.Id.ToString() == updateTransactionDTO.Id &&
                 t.Account!.AppUserId.ToString() == userId &&
                 t.AccountId.ToString() == updateTransactionDTO.AccountId,
                 includeProperty: "Account");
@@ -176,7 +179,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
 
         _ = await transactionRepository.SaveAsync();
 
-        ServiceResult<TransactionDTO> result = new() 
+        ServiceResult<TransactionDTO> result = new()
         {
             Success = true,
             Data = new TransactionDTO()
@@ -186,7 +189,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
                 Amount = transaction.Amount,
                 Description = transaction.Description,
                 AccountId = transaction.AccountId,
-                CreationDate = transaction.CreationDate.ToString("dd/MM/yyyy")
+                CreationDate = transaction.CreationDate.ToString(DateTimeStringFormat)
             }
         };
 

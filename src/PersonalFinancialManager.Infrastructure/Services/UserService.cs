@@ -9,6 +9,8 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using System.Threading.Tasks;
 
+using static PersonalFinancialManager.Infrastructure.Constants.InfrastructureValidationMessages;
+
 public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IConfiguration configuration) : IUserService
 {
     public async Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO)
@@ -71,8 +73,7 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
         if (user == null || !signInResult!.Succeeded)
         {
             result.Success = false;
-            // TODO: Move the hardcoded strings to a constants class.
-            result.Errors = new Dictionary<string, string[]> { { "Invalid login.", ["Invalid email or password."] } };
+            result.Errors = new Dictionary<string, string[]> { { ErrorMessages.InvalidLogin.Code, [ErrorMessages.InvalidLogin.Description] } };
         }
 
         return result;
