@@ -13,13 +13,14 @@ public class TokenService(IConfiguration configuration) : ITokenService
     public string GenerateAccessToken(IEnumerable<Claim> claims)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+        
+        double tokenExpiration = double.Parse(configuration["Jwt:TokenExpirationInMinutes"]!);
 
-        // TODO: Change the expires time for something longer after testing
         var token = new JwtSecurityToken
         (
             issuer: configuration["Jwt:Issuer"],
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(2),
+            expires: DateTime.UtcNow.AddMinutes(tokenExpiration),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
         );
 
