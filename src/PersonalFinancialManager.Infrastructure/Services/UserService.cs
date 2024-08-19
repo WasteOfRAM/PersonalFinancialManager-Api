@@ -1,6 +1,7 @@
 ﻿namespace PersonalFinancialManager.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Application.Interfaces.Services;
@@ -8,7 +9,9 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using System.Threading.Tasks;
 
-public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : IUserService
+using static PersonalFinancialManager.Infrastructure.Constants.InfrastructureValidationMessages;
+
+public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IConfiguration configuration) : IUserService
 {
     public async Task<ServiceResult> CreateAsync(CreateUserDTO createUserDTO)
     {
@@ -56,9 +59,9 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
                 };
 
                 user.RefreshToken = token.RefreshToken;
-                // TODO: Change the expires time for something longer after testing
-                // TODO: Move to hardcoded value to constants
-                user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(5);
+
+                double tokenExpiration = double.Parse(configuration["Jwt:RefreshTokenExpirationInMinutes"]!);
+                user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(tokenExpiration);
 
                 await userManager.UpdateAsync(user);
 
@@ -70,8 +73,7 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
         if (user == null || !signInResult!.Succeeded)
         {
             result.Success = false;
-            // TODO: Move the hardcoded strings to a constants class.
-            result.Errors = new Dictionary<string, string[]> { { "Invalid login.", ["Invalid email or password."] } };
+            result.Errors = new Dictionary<string, string[]> { { ErrorMessages.InvalidLogin.Code, [ErrorMessages.InvalidLogin.Description] } };
         }
 
         return result;
@@ -98,9 +100,9 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
         };
 
         user.RefreshToken = token.RefreshToken;
-        // TODO: Change the expires time for something longer after testing
-        // TODO: Move to hardcoded value to constants
-        user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(5);
+
+        double tokenExpiration = double.Parse(configuration["Jwt:RefreshTokenExpirationInMinutes"]!);
+        user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(tokenExpiration);
 
         await userManager.UpdateAsync(user);
 

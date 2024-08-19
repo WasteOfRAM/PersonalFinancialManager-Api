@@ -1,28 +1,24 @@
-﻿namespace PersonalFinancialManager.Application.DTOs.Account;
+﻿namespace PersonalFinancialManager.Application.DTOs.Transaction;
 
 using Microsoft.EntityFrameworkCore;
+using PersonalFinancialManager.Application.Attributes;
 using PersonalFinancialManager.Core.Enumerations;
 using System.ComponentModel.DataAnnotations;
-
 using static PersonalFinancialManager.Core.Constants.ValidationConstants;
 
-public class CreateAccountDTO
+public class CreateTransactionDTO
 {
     [Required]
-    [StringLength(maximumLength: AccountConstants.NameMaxLength)]
-    public required string Name { get; set; }
+    [GuidDataType]
+    public required string AccountId { get; set; }
 
     [Required]
-    [StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
-    public required string Currency { get; set; }
-
-    [Required]
-    [EnumDataType(typeof(AccountType))]
-    public required string AccountType { get; set; }
+    [EnumDataType(typeof(TransactionType))]
+    public required string TransactionType { get; set; }
 
     [Precision(DecimalPrecisionConstant.Integer, DecimalPrecisionConstant.Fraction)]
     [Range(0.0, double.PositiveInfinity)]
-    public decimal? Total { get; set; }
+    public decimal Amount { get; set; }
 
     [StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
     public string? Description { get; set; }

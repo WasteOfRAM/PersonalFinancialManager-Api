@@ -6,5 +6,4 @@ using PersonalFinancialManager.Infrastructure.Data;
 
 public class TransactionRepository(AppDbContext dbContext) : RepositoryBase<Transaction>(dbContext), ITransactionRepository
 {
-
 }

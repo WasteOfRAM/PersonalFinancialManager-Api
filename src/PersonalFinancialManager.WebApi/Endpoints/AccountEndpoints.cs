@@ -43,6 +43,22 @@ public static class AccountEndpoints
         })
         .MapToApiVersion(1);
 
+        accountRoutes.MapGet("/{id:Guid}/transactions",
+            async Task<Results<Ok<AccountWithTransactionsDTO>, NotFound>> (Guid id, [AsParameters] QueryModel query, IAccountService accountService, HttpContext context) =>
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ServiceResult<AccountWithTransactionsDTO> serviceResult = await accountService.GetWithTransactionsAsync(id, query, userId!);
+
+            if (!serviceResult.Success)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Ok(serviceResult.Data);
+        })
+            .MapToApiVersion(1);
+
         accountRoutes.MapGet("/", async ([AsParameters] QueryModel query, IAccountService accountService, HttpContext context) =>
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
