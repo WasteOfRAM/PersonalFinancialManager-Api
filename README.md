@@ -9,6 +9,7 @@ Pending ..
 ## Endpoints
 
 ## Users  
+
 ### **/api/v1/user/register**
 
 **Method:** POST  
@@ -28,6 +29,8 @@ Pending ..
 
 **Response:**  
 &nbsp;&nbsp;&nbsp;&nbsp; Status code: 200 OK  
+
+---
 
 ### **/api/v1/user/login**
 
@@ -58,6 +61,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/user/refresh**
 
 **Method:** POST  
@@ -85,6 +90,8 @@ Pending ..
     "refreshToken": "string"
 }
 ```
+
+---
 
 ## Accounts
 ### **/api/v1/account**
@@ -127,6 +134,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/account/{id}**
 
 **Method:** GET  
@@ -150,6 +159,8 @@ Pending ..
   "description": "Description"
 }
 ```
+
+---
 
 ### **/api/v1/account/{id}/transactions**
 
@@ -208,6 +219,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/account/**  
 **Method:** GET  
 **Headers:**  
@@ -255,6 +268,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/account/**  
 
 **Method:** PUT    
@@ -297,6 +312,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/account/{id}**  
 
 **Method:** DELETE    
@@ -308,6 +325,8 @@ Pending ..
 
 **Response:**  
 &nbsp;&nbsp;&nbsp;&nbsp; Status code: 204 No Content  
+
+---
 
 ## Transactions
 
@@ -348,6 +367,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/transaction/{id}**  
 
 **Method:** GET    
@@ -371,6 +392,8 @@ Pending ..
   "accountId": "8ebffcff-7480-4fcd-bdae-08dcc1c648ee"
 }
 ```
+
+---
 
 ### **/api/v1/transaction/** 
 
@@ -418,6 +441,8 @@ Pending ..
 }
 ```
 
+---
+
 ### **/api/v1/transaction/** 
 
 **Method:** PUT    
@@ -456,6 +481,8 @@ Pending ..
       "accountId": "8ebffcff-7480-4fcd-bdae-08dcc1c648ee"
     }
 ```
+
+---
 
 ### **/api/v1/transaction/{id}** 
 
