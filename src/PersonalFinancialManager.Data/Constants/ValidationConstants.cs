@@ -12,8 +12,8 @@ public static class ValidationConstants
 
     public static class DecimalPrecisionConstant
     {
-        public const int Integer = 19;
-        public const int Fraction = 4;
+        public const int Precision = 19;
+        public const int Scale = 4;
     }
 
     public static class AccountConstants
