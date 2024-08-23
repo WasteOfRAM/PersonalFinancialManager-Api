@@ -24,7 +24,7 @@ public class Account
     public DateTime CreationDate { get; set; }
 
     [DefaultValue(CommonConstants.MoneyDefaultValue)]
-    [Precision(DecimalPrecisionConstant.Integer, DecimalPrecisionConstant.Fraction)]
+    [Precision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)]
     public decimal Total { get; set; }
 
     [StringLength(maximumLength: CommonConstants.DescriptionMaxLength)]

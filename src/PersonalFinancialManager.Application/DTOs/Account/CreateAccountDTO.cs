@@ -1,29 +1,25 @@
 ﻿namespace PersonalFinancialManager.Application.DTOs.Account;
 
-using Microsoft.EntityFrameworkCore;
+using PersonalFinancialManager.Application.Attributes;
 using PersonalFinancialManager.Core.Enumerations;
 using System.ComponentModel.DataAnnotations;
 
 using static PersonalFinancialManager.Core.Constants.ValidationConstants;
 
-public class CreateAccountDTO
-{
-    [Required]
-    [StringLength(maximumLength: AccountConstants.NameMaxLength)]
-    public required string Name { get; set; }
+public record CreateAccountDTO
+(
+    [property: Required] [property: StringLength(maximumLength: AccountConstants.NameMaxLength)] 
+    string Name,
 
-    [Required]
-    [StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
-    public required string Currency { get; set; }
+    [property: Required] [property: StringLength(maximumLength: AccountConstants.CurrencyMaxLength)] 
+    string Currency,
 
-    [Required]
-    [EnumDataType(typeof(AccountType))]
-    public required string AccountType { get; set; }
+    [property: Required] [property: EnumDataType(typeof(AccountType))] 
+    string AccountType,
 
-    [Precision(DecimalPrecisionConstant.Integer, DecimalPrecisionConstant.Fraction)]
-    [Range(0.0, double.PositiveInfinity)]
-    public decimal? Total { get; set; }
+    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] [property: Range(0.0, double.PositiveInfinity)] 
+    decimal? Total,
 
-    [StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
-    public string? Description { get; set; }
-}
+    [property: StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)] 
+    string? Description
+);

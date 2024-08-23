@@ -16,7 +16,7 @@ public class Transaction
     public TransactionType TransactionType { get; set; }
 
     [DefaultValue(CommonConstants.MoneyDefaultValue)]
-    [Precision(DecimalPrecisionConstant.Integer, DecimalPrecisionConstant.Fraction)]
+    [Precision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)]
     public decimal Amount { get; set; }
 
     public DateTime CreationDate { get; set; }
