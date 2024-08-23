@@ -43,14 +43,14 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         {
             Success = true,
             Data = new TransactionDTO
-            {
-                Id = entity.Id,
-                TransactionType = entity.TransactionType.ToString(),
-                Amount = entity.Amount,
-                Description = entity.Description,
-                AccountId = account.Id,
-                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
-            }
+            (
+                entity.Id,
+                entity.TransactionType.ToString(),
+                entity.Amount,
+                entity.CreationDate.ToString(DateTimeStringFormat),
+                entity.Description,
+                account.Id
+            )
         };
 
         return result;
@@ -97,23 +97,23 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         {
             Success = true,
             Data = new QueryResponse<TransactionDTO>
-            {
-                Items = transactions.Items.Select(t => new TransactionDTO
-                {
-                    AccountId = t.AccountId,
-                    TransactionType = t.TransactionType.ToString(),
-                    Amount = t.Amount,
-                    Description = t.Description,
-                    CreationDate = t.CreationDate.ToString(DateTimeStringFormat),
-                    Id = t.Id
-                }),
-                ItemsCount = transactions.ItemsCount,
-                CurrentPage = queryModel.Page ?? 1,
-                Search = queryModel.Search,
-                Order = queryModel.Order ?? "DESC",
-                OrderBy = queryModel.OrderBy ?? "CreationDate",
-                ItemsPerPage = queryModel.ItemsPerPage
-            }
+            (
+                queryModel.Search,
+                transactions.ItemsCount,
+                queryModel.Page ?? 1,
+                queryModel.ItemsPerPage,
+                queryModel.OrderBy ?? "CreationDate",
+                queryModel.Order ?? "DESC",
+                transactions.Items.Select(transaction => new TransactionDTO
+                (
+                    transaction.Id,
+                    transaction.TransactionType.ToString(),
+                    transaction.Amount,
+                    transaction.CreationDate.ToString(DateTimeStringFormat),
+                    transaction.Description,
+                    transaction.AccountId
+                ))
+            )
         };
 
         return result;
@@ -139,14 +139,14 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         {
             Success = true,
             Data = new TransactionDTO
-            {
-                Id = transaction.Id,
-                TransactionType = transaction.TransactionType.ToString(),
-                Amount = transaction.Amount,
-                Description = transaction.Description,
-                AccountId = transaction.AccountId,
-                CreationDate = transaction.CreationDate.ToString(DateTimeStringFormat)
-            }
+            (
+                transaction.Id,
+                transaction.TransactionType.ToString(),
+                transaction.Amount,
+                transaction.CreationDate.ToString(DateTimeStringFormat),
+                transaction.Description,
+                transaction.AccountId
+            )
         };
 
         return result;
@@ -182,15 +182,15 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         ServiceResult<TransactionDTO> result = new()
         {
             Success = true,
-            Data = new TransactionDTO()
-            {
-                Id = transaction.Id,
-                TransactionType = transaction.TransactionType.ToString(),
-                Amount = transaction.Amount,
-                Description = transaction.Description,
-                AccountId = transaction.AccountId,
-                CreationDate = transaction.CreationDate.ToString(DateTimeStringFormat)
-            }
+            Data = new TransactionDTO
+            (
+                transaction.Id,
+                transaction.TransactionType.ToString(),
+                transaction.Amount,
+                transaction.CreationDate.ToString(DateTimeStringFormat),
+                transaction.Description,
+                transaction.AccountId
+            )
         };
 
         return result;

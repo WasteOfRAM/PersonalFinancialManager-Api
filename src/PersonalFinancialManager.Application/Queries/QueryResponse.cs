@@ -1,18 +1,12 @@
 ﻿namespace PersonalFinancialManager.Application.Queries;
 
-public class QueryResponse<T>
-{
-    public string? Search { get; set; }
-
-    public int? ItemsCount { get; set; }
-
-    public int CurrentPage { get; set; }
-
-    public int? ItemsPerPage { get; set; }
-
-    public string? OrderBy { get; set; }
-
-    public string? Order { get; set; }
-
-    public IEnumerable<T>? Items { get; set; }
-}
+public record QueryResponse<T>
+(
+    string? Search,
+    int? ItemsCount,
+    int CurrentPage,
+    int? ItemsPerPage,
+    string? OrderBy,
+    string? Order,
+    IEnumerable<T>? Items
+);

@@ -1,6 +1,3 @@
 ﻿namespace PersonalFinancialManager.Application.DTOs.Authentication;
 
-public class RefreshTokenDTO
-{
-    public required string RefreshToken { get; set; }
-}
+public record RefreshTokenDTO(string RefreshToken);

@@ -6,24 +6,20 @@ using System.ComponentModel.DataAnnotations;
 
 using static PersonalFinancialManager.Core.Constants.ValidationConstants;
 
-public class UpdateAccountDTO
-{
-    [Required]
-    [GuidDataType]
-    public required string Id { get; set; }
+public record UpdateAccountDTO
+(
+    [property: Required] [property: GuidDataType]
+    string Id,
 
-    [Required]
-    [StringLength(maximumLength: AccountConstants.NameMaxLength)]
-    public required string Name { get; set; }
+    [property: Required] [property: StringLength(maximumLength: AccountConstants.NameMaxLength)]
+    string Name,
 
-    [Required]
-    [StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
-    public required string Currency { get; set; }
+    [property: Required] [property: StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
+    string Currency,
 
-    [Required]
-    [EnumDataType(typeof(AccountType))]
-    public required string AccountType { get; set; }
+    [property: Required] [property: EnumDataType(typeof(AccountType))]
+    string AccountType,
 
-    [StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
-    public string? Description { get; set; }
-}
+    [property: StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
+    string? Description
+);

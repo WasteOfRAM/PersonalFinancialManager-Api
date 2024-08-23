@@ -56,16 +56,16 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         ServiceResult<AccountDTO> result = new()
         {
             Success = true,
-            Data = new()
-            {
-                Id = accountEntity.Id,
-                Name = accountEntity.Name,
-                Currency = accountEntity.Currency,
-                AccountType = accountEntity.AccountType.ToString(),
-                Description = accountEntity.Description,
-                Total = accountEntity.Total,
-                CreationDate = accountEntity.CreationDate.ToString(DateTimeStringFormat)
-            }
+            Data = new AccountDTO
+            (
+                accountEntity.Id,
+                accountEntity.Name,
+                accountEntity.Currency,
+                accountEntity.AccountType.ToString(),
+                accountEntity.CreationDate.ToString(DateTimeStringFormat),
+                accountEntity.Total,
+                accountEntity.Description
+            )
         };
 
         return result;
@@ -114,24 +114,24 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         {
             Success = true,
             Data = new QueryResponse<AccountDTO>
-            {
-                Search = queryModel.Search,
-                ItemsCount = queryResult.ItemsCount,
-                CurrentPage = queryModel.Page ?? 1,
-                ItemsPerPage = queryModel.ItemsPerPage,
-                Order = order,
-                OrderBy = queryModel.OrderBy,
-                Items = queryResult.Items.Select(i => new AccountDTO
-                {
-                    Id = i.Id,
-                    Name = i.Name,
-                    Currency = i.Currency,
-                    AccountType = i.AccountType.ToString(),
-                    Description = i.Description,
-                    Total = i.Total,
-                    CreationDate = i.CreationDate.ToString(DateTimeStringFormat)
-                })
-            }
+            (
+                queryModel.Search,
+                queryResult.ItemsCount,
+                queryModel.Page ?? 1,
+                queryModel.ItemsPerPage,
+                queryModel.OrderBy,
+                order,
+                queryResult.Items.Select(account => new AccountDTO
+                (
+                    account.Id,
+                    account.Name,
+                    account.Currency,
+                    account.AccountType.ToString(),
+                    account.CreationDate.ToString(DateTimeStringFormat),
+                    account.Total,
+                    account.Description
+                ))
+            )
         };
 
         return result;
@@ -149,16 +149,16 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         ServiceResult<AccountDTO> result = new()
         {
             Success = true,
-            Data = new()
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Currency = entity.Currency,
-                AccountType = entity.AccountType.ToString(),
-                Description = entity.Description,
-                Total = entity.Total,
-                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
-            }
+            Data = new AccountDTO
+            (
+                entity.Id,
+                entity.Name,
+                entity.Currency,
+                entity.AccountType.ToString(),
+                entity.CreationDate.ToString(DateTimeStringFormat),
+                entity.Total,
+                entity.Description
+            )
         };
 
         return result;
@@ -187,35 +187,34 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             itemsPerPage: transactionsQuery.ItemsPerPage,
             page: transactionsQuery.Page ?? 1);
 
-        AccountWithTransactionsDTO accountWithTransactionsDTO = new()
-        {
-            Id = account.Id,
-            Name = account.Name,
-            Currency = account.Currency,
-            AccountType = account.AccountType.ToString(),
-            Description = account.Description,
-            Total = account.Total,
-            CreationDate = account.CreationDate.ToString(DateTimeStringFormat),
-            Transactions = new QueryResponse<TransactionDTO>()
-            {
-                Items = queryResult.Items.Select(t => new TransactionDTO
-                {
-                    Id = t.Id,
-                    AccountId = t.AccountId,
-                    TransactionType = t.TransactionType.ToString(),
-                    Amount = t.Amount,
-                    Description = t.Description,
-                    CreationDate = t.CreationDate.ToString(DateTimeStringFormat)
-                }),
-                ItemsCount = queryResult.ItemsCount,
-                CurrentPage = transactionsQuery.Page ?? 1,
-                Search = transactionsQuery.Search,
-                Order = transactionsQuery.Order ?? "DESC",
-                OrderBy = transactionsQuery.OrderBy ?? "CreationDate",
-                ItemsPerPage = transactionsQuery.ItemsPerPage
-            }
-
-        };
+        AccountWithTransactionsDTO accountWithTransactionsDTO = new
+        (
+            account.Id,
+            account.Name,
+            account.Currency,
+            account.AccountType.ToString(),
+            account.CreationDate.ToString(DateTimeStringFormat),
+            account.Total,
+            account.Description,
+            new QueryResponse<TransactionDTO>
+            (
+                transactionsQuery.Search,
+                queryResult.ItemsCount,
+                transactionsQuery.Page ?? 1,
+                transactionsQuery.ItemsPerPage,
+                transactionsQuery.OrderBy ?? "CreationDate",
+                transactionsQuery.Order ?? "DESC",
+                queryResult.Items.Select(transaction => new TransactionDTO
+                (
+                    transaction.Id,
+                    transaction.TransactionType.ToString(),
+                    transaction.Amount,
+                    transaction.CreationDate.ToString(DateTimeStringFormat),
+                    transaction.Description,
+                    transaction.AccountId
+                ))
+            )
+        );
 
         ServiceResult<AccountWithTransactionsDTO> result = new()
         {
@@ -253,16 +252,16 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         ServiceResult<AccountDTO> result = new()
         {
             Success = true,
-            Data = new()
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Currency = entity.Currency,
-                AccountType = entity.AccountType.ToString(),
-                Description = entity.Description,
-                Total = entity.Total,
-                CreationDate = entity.CreationDate.ToString(DateTimeStringFormat)
-            }
+            Data = new AccountDTO
+            (
+                entity.Id,
+                entity.Name,
+                entity.Currency,
+                entity.AccountType.ToString(),
+                entity.CreationDate.ToString(DateTimeStringFormat),
+                entity.Total,
+                entity.Description
+            )
         };
 
         return result;

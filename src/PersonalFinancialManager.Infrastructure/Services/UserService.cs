@@ -52,11 +52,7 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
             {
                 var principal = await signInManager.CreateUserPrincipalAsync(user);
 
-                AccessTokenDTO token = new()
-                {
-                    AccessToken = tokenService.GenerateAccessToken(principal.Claims),
-                    RefreshToken = tokenService.GenerateRefreshToken()
-                };
+                AccessTokenDTO token = new(tokenService.GenerateAccessToken(principal.Claims), tokenService.GenerateRefreshToken());
 
                 user.RefreshToken = token.RefreshToken;
 
@@ -93,11 +89,7 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
 
         var principal = await signInManager.CreateUserPrincipalAsync(user);
 
-        AccessTokenDTO token = new()
-        {
-            AccessToken = tokenService.GenerateAccessToken(principal.Claims),
-            RefreshToken = tokenService.GenerateRefreshToken()
-        };
+        AccessTokenDTO token = new(tokenService.GenerateAccessToken(principal.Claims), tokenService.GenerateRefreshToken());
 
         user.RefreshToken = token.RefreshToken;
 
