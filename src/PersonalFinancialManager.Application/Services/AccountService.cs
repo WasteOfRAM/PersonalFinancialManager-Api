@@ -27,7 +27,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         Account accountEntity = new()
         {
             Name = createAccountDTO.Name,
-            Currency = createAccountDTO.Currency,
+            Currency = (Currency)Enum.Parse(typeof(Currency), createAccountDTO.Currency),
             AccountType = (AccountType)Enum.Parse(typeof(AccountType), createAccountDTO.AccountType),
             Description = createAccountDTO.Description,
             Total = createAccountDTO.Total ?? 0.0m,
@@ -60,7 +60,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             (
                 accountEntity.Id,
                 accountEntity.Name,
-                accountEntity.Currency,
+                accountEntity.Currency.ToString(),
                 accountEntity.AccountType.ToString(),
                 accountEntity.CreationDate.ToString(DateTimeStringFormat),
                 accountEntity.Total,
@@ -125,7 +125,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                 (
                     account.Id,
                     account.Name,
-                    account.Currency,
+                    account.Currency.ToString(),
                     account.AccountType.ToString(),
                     account.CreationDate.ToString(DateTimeStringFormat),
                     account.Total,
@@ -153,7 +153,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             (
                 entity.Id,
                 entity.Name,
-                entity.Currency,
+                entity.Currency.ToString(),
                 entity.AccountType.ToString(),
                 entity.CreationDate.ToString(DateTimeStringFormat),
                 entity.Total,
@@ -191,7 +191,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         (
             account.Id,
             account.Name,
-            account.Currency,
+            account.Currency.ToString(),
             account.AccountType.ToString(),
             account.CreationDate.ToString(DateTimeStringFormat),
             account.Total,
@@ -242,7 +242,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         }
 
         entity.Name = updateAccountDTO.Name;
-        entity.Currency = updateAccountDTO.Currency;
+        entity.Currency = (Currency)Enum.Parse(typeof(Currency), updateAccountDTO.Currency);
         entity.AccountType = (AccountType)Enum.Parse(typeof(AccountType), updateAccountDTO.AccountType);
         entity.Description = updateAccountDTO.Description;
 
@@ -256,7 +256,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             (
                 entity.Id,
                 entity.Name,
-                entity.Currency,
+                entity.Currency.ToString(),
                 entity.AccountType.ToString(),
                 entity.CreationDate.ToString(DateTimeStringFormat),
                 entity.Total,

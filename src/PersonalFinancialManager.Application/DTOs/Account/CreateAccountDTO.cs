@@ -11,7 +11,7 @@ public record CreateAccountDTO
     [property: Required] [property: StringLength(maximumLength: AccountConstants.NameMaxLength)] 
     string Name,
 
-    [property: Required] [property: StringLength(maximumLength: AccountConstants.CurrencyMaxLength)] 
+    [property: Required] [property: EnumDataType(typeof(Currency))]
     string Currency,
 
     [property: Required] [property: EnumDataType(typeof(AccountType))] 
