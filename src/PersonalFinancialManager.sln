@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersonalFinancialManager.In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersonalFinancialManager.Application", "PersonalFinancialManager.Application\PersonalFinancialManager.Application.csproj", "{822CA360-C98E-4877-85C6-8BFFB9539D57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinancialManager.UnitTests", "..\tests\PersonalFinancialManager.UnitTests\PersonalFinancialManager.UnitTests.csproj", "{1D2ABAD8-1FC9-41CC-B6F8-2A6041A341E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{822CA360-C98E-4877-85C6-8BFFB9539D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{822CA360-C98E-4877-85C6-8BFFB9539D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{822CA360-C98E-4877-85C6-8BFFB9539D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D2ABAD8-1FC9-41CC-B6F8-2A6041A341E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D2ABAD8-1FC9-41CC-B6F8-2A6041A341E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D2ABAD8-1FC9-41CC-B6F8-2A6041A341E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D2ABAD8-1FC9-41CC-B6F8-2A6041A341E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
