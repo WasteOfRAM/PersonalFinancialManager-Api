@@ -55,6 +55,7 @@ public class UserServiceTests
         configuration["Jwt:Key"].Returns("erhgrRTGsadfef545erdgdfgr6tDFHGR4653fgdggsdf");
         configuration["Jwt:Issuer"].Returns("testIssuer");
         configuration["Jwt:Audience"].Returns("testAudience");
+        configuration["Jwt:TokenExpirationInMinutes"].Returns("10");
         configuration["Jwt:RefreshTokenExpirationInMinutes"].Returns("10");
 
         userService = new UserService(userManager, signInManager, tokenService, configuration);
