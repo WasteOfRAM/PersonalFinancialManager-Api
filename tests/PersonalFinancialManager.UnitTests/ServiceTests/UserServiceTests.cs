@@ -121,7 +121,7 @@ public class UserServiceTests
             Assert.Null(result.Errors);
             Assert.NotNull(result.Data);
         });
-        
+
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class UserServiceTests
     {
         var userId = Guid.NewGuid();
         string refreshToken = "I64zpHLXJG1YfxRnnZ7G6JQogp+D4VUeZilJpy4Al3FodmxskudlojdL4IZhUFgQLZOZz1tcWbyMmEwr8LlO21OjiF2558Cy8NCiEbzes4QO1qp/XB2iO4vuT3XFV/aLf0pzXjZ3pq+/1O7d1oF6e63mSBpD/ceZuQc3VWOVWqbkcDK9rv39zRmxridsOIuGOrSbAhIoxTwvJyuMg3jw4o8SzKS/L9cBkrx4XEx9AdtoBTJiZM6+/ZYe15ky+KOVElyF63wD5CNOro+lWPZYGqlgLAlWlUAzE/kqtwrkltXr1YFFR4ExiojXODMz5UclO2sJM6VSxMiFSfsCCr9dMQ==";
-        var refreshTokenExpiration = DateTime.Parse("2024-02-02");
+        var refreshTokenExpiration = DateTime.Parse("2100-02-02");
 
         var appUser = fixture
             .Build<AppUser>()
@@ -186,6 +186,75 @@ public class UserServiceTests
         {
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
+            Assert.Null(result.Errors);
+        });
+    }
+
+    [Fact]
+    public async Task TokenRefresh_With_Invalid_UserId_Returns_ResultSuccess_False_With_Data_Null()
+    {
+        var userId = Guid.NewGuid();
+        string refreshToken = "I64zpHLXJG1YfxRnnZ7G6JQogp+D4VUeZilJpy4Al3FodmxskudlojdL4IZhUFgQLZOZz1tcWbyMmEwr8LlO21OjiF2558Cy8NCiEbzes4QO1qp/XB2iO4vuT3XFV/aLf0pzXjZ3pq+/1O7d1oF6e63mSBpD/ceZuQc3VWOVWqbkcDK9rv39zRmxridsOIuGOrSbAhIoxTwvJyuMg3jw4o8SzKS/L9cBkrx4XEx9AdtoBTJiZM6+/ZYe15ky+KOVElyF63wD5CNOro+lWPZYGqlgLAlWlUAzE/kqtwrkltXr1YFFR4ExiojXODMz5UclO2sJM6VSxMiFSfsCCr9dMQ==";
+
+        userManager.FindByIdAsync(userId.ToString()).ReturnsNull();
+
+        var result = await userService.TokenRefresh(userId.ToString(), refreshToken);
+
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.Null(result.Data);
+            Assert.Null(result.Errors);
+        });
+    }
+
+    [Fact]
+    public async Task TokenRefresh_With_Invalid_RefreshToken_Returns_ResultSuccess_False_With_Data_Null()
+    {
+        var userId = Guid.NewGuid();
+        string refreshToken = "I64zpHLXJG1YfxRnnZ7G6JQogp+D4VUeZilJpy4Al3FodmxskudlojdL4IZhUFgQLZOZz1tcWbyMmEwr8LlO21OjiF2558Cy8NCiEbzes4QO1qp/XB2iO4vuT3XFV/aLf0pzXjZ3pq+/1O7d1oF6e63mSBpD/ceZuQc3VWOVWqbkcDK9rv39zRmxridsOIuGOrSbAhIoxTwvJyuMg3jw4o8SzKS/L9cBkrx4XEx9AdtoBTJiZM6+/ZYe15ky+KOVElyF63wD5CNOro+lWPZYGqlgLAlWlUAzE/kqtwrkltXr1YFFR4ExiojXODMz5UclO2sJM6VSxMiFSfsCCr9dMQ==";
+        var refreshTokenExpiration = DateTime.Parse("2100-02-02");
+
+        var appUser = fixture
+            .Build<AppUser>()
+            .With(u => u.Id, userId)
+            .With(u => u.RefreshTokenExpiration, refreshTokenExpiration)
+            .Create();
+
+        userManager.FindByIdAsync(userId.ToString()).Returns(appUser);
+
+        var result = await userService.TokenRefresh(userId.ToString(), refreshToken);
+
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.Null(result.Data);
+            Assert.Null(result.Errors);
+        });
+    }
+
+    [Fact]
+    public async Task TokenRefresh_With_Valid_Expired_RefreshToken_Returns_ResultSuccess_False_With_Data_Null()
+    {
+        var userId = Guid.NewGuid();
+        string refreshToken = "I64zpHLXJG1YfxRnnZ7G6JQogp+D4VUeZilJpy4Al3FodmxskudlojdL4IZhUFgQLZOZz1tcWbyMmEwr8LlO21OjiF2558Cy8NCiEbzes4QO1qp/XB2iO4vuT3XFV/aLf0pzXjZ3pq+/1O7d1oF6e63mSBpD/ceZuQc3VWOVWqbkcDK9rv39zRmxridsOIuGOrSbAhIoxTwvJyuMg3jw4o8SzKS/L9cBkrx4XEx9AdtoBTJiZM6+/ZYe15ky+KOVElyF63wD5CNOro+lWPZYGqlgLAlWlUAzE/kqtwrkltXr1YFFR4ExiojXODMz5UclO2sJM6VSxMiFSfsCCr9dMQ==";
+        var refreshTokenExpiration = DateTime.Parse("2024-02-02");
+
+        var appUser = fixture
+            .Build<AppUser>()
+            .With(u => u.Id, userId)
+            .With(u => u.RefreshToken, refreshToken)
+            .With(u => u.RefreshTokenExpiration, refreshTokenExpiration)
+            .Create();
+
+        userManager.FindByIdAsync(userId.ToString()).Returns(appUser);
+
+        var result = await userService.TokenRefresh(userId.ToString(), refreshToken);
+
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.Null(result.Data);
             Assert.Null(result.Errors);
         });
     }
