@@ -19,7 +19,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 {
     public async Task<ServiceResult<AccountDTO>> CreateAsync(string userId, CreateAccountDTO createAccountDTO)
     {
-        if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == createAccountDTO.Name))
+        if (await accountRepository.AnyAsync(account => account.AppUserId.ToString() == userId && account.Name == createAccountDTO.Name))
         {
             return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { ErrorMessages.DuplicateName.Code, [string.Format(ErrorMessages.DuplicateName.Description, createAccountDTO.Name)] } } };
         }
