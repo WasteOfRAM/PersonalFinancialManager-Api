@@ -139,9 +139,9 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 
     public async Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId)
     {
-        Account? entity = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
+        Account? account = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
 
-        if (entity == null)
+        if (account == null)
         {
             return new() { Success = false };
         }
@@ -151,13 +151,13 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             Success = true,
             Data = new AccountDTO
             (
-                entity.Id,
-                entity.Name,
-                entity.Currency.ToString(),
-                entity.AccountType.ToString(),
-                entity.CreationDate.ToString(DateTimeStringFormat),
-                entity.Total,
-                entity.Description
+                account.Id,
+                account.Name,
+                account.Currency.ToString(),
+                account.AccountType.ToString(),
+                account.CreationDate.ToString(DateTimeStringFormat),
+                account.Total,
+                account.Description
             )
         };
 
