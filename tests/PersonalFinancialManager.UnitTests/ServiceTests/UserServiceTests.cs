@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NSubstitute.ReturnsExtensions;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Application.Interfaces.Services;
 using PersonalFinancialManager.Core.Entities;

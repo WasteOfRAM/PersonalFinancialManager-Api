@@ -1,7 +1,5 @@
 ﻿namespace PersonalFinancialManager.UnitTests.ServiceTests;
 
-using AutoFixture;
-using NSubstitute.ReturnsExtensions;
 using PersonalFinancialManager.Application.DTOs.Account;
 using PersonalFinancialManager.Application.Interfaces.Repositories;
 using PersonalFinancialManager.Application.Queries;
