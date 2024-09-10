@@ -16,7 +16,7 @@ public record UpdateTransactionDTO
     [property : Required] [property: EnumDataType(typeof(TransactionType))]
     string TransactionType,
 
-    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] [property: Range(0.0, double.PositiveInfinity)]
+    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] [property: Range(0.0, 999999999999999.9999)]
     decimal Amount,
 
     [property : StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
