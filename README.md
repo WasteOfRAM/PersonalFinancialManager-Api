@@ -1,7 +1,7 @@
 # PersonalFinancialManager Api
 ###### Work in progress everything is subject to change. Documentation may be behind and uncomplete at times.  
 
-![Unit Tests](https://github.com/WasteOfRAM/PersonalFinancialManager-Api/actions/workflows/unit-tests.yml/badge.svg)
+![Unit Tests](https://github.com/WasteOfRAM/PersonalFinancialManager-Api/actions/workflows/unit-tests.yml/badge.svg?branch=main&label=Unit%20Tests)
 
 #### An API for managing personal finances. It is standalone does not connect to any bank or other finance apps.
 
