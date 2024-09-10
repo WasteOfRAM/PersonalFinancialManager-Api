@@ -79,7 +79,7 @@ public class UserService(UserManager<AppUser> userManager, SignInManager<AppUser
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiration > DateTime.Now)
+        if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiration < DateTime.Now)
         {
             return new ServiceResult<AccessTokenDTO>
             {

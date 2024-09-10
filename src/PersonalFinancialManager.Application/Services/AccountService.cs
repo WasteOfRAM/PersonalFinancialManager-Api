@@ -19,7 +19,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 {
     public async Task<ServiceResult<AccountDTO>> CreateAsync(string userId, CreateAccountDTO createAccountDTO)
     {
-        if (await accountRepository.AnyAsync(e => e.AppUserId.ToString() == userId && e.Name == createAccountDTO.Name))
+        if (await accountRepository.AnyAsync(account => account.AppUserId.ToString() == userId && account.Name == createAccountDTO.Name))
         {
             return new ServiceResult<AccountDTO> { Success = false, Errors = new() { { ErrorMessages.DuplicateName.Code, [string.Format(ErrorMessages.DuplicateName.Description, createAccountDTO.Name)] } } };
         }
@@ -27,7 +27,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         Account accountEntity = new()
         {
             Name = createAccountDTO.Name,
-            Currency = createAccountDTO.Currency,
+            Currency = (Currency)Enum.Parse(typeof(Currency), createAccountDTO.Currency),
             AccountType = (AccountType)Enum.Parse(typeof(AccountType), createAccountDTO.AccountType),
             Description = createAccountDTO.Description,
             Total = createAccountDTO.Total ?? 0.0m,
@@ -60,7 +60,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             (
                 accountEntity.Id,
                 accountEntity.Name,
-                accountEntity.Currency,
+                accountEntity.Currency.ToString(),
                 accountEntity.AccountType.ToString(),
                 accountEntity.CreationDate.ToString(DateTimeStringFormat),
                 accountEntity.Total,
@@ -125,7 +125,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
                 (
                     account.Id,
                     account.Name,
-                    account.Currency,
+                    account.Currency.ToString(),
                     account.AccountType.ToString(),
                     account.CreationDate.ToString(DateTimeStringFormat),
                     account.Total,
@@ -139,9 +139,9 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
 
     public async Task<ServiceResult<AccountDTO>> GetAsync(Guid id, string userId)
     {
-        Account? entity = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
+        Account? account = await accountRepository.GetAsync(e => e.AppUserId.ToString() == userId && e.Id == id);
 
-        if (entity == null)
+        if (account == null)
         {
             return new() { Success = false };
         }
@@ -151,13 +151,13 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             Success = true,
             Data = new AccountDTO
             (
-                entity.Id,
-                entity.Name,
-                entity.Currency,
-                entity.AccountType.ToString(),
-                entity.CreationDate.ToString(DateTimeStringFormat),
-                entity.Total,
-                entity.Description
+                account.Id,
+                account.Name,
+                account.Currency.ToString(),
+                account.AccountType.ToString(),
+                account.CreationDate.ToString(DateTimeStringFormat),
+                account.Total,
+                account.Description
             )
         };
 
@@ -191,7 +191,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         (
             account.Id,
             account.Name,
-            account.Currency,
+            account.Currency.ToString(),
             account.AccountType.ToString(),
             account.CreationDate.ToString(DateTimeStringFormat),
             account.Total,
@@ -242,7 +242,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         }
 
         entity.Name = updateAccountDTO.Name;
-        entity.Currency = updateAccountDTO.Currency;
+        entity.Currency = (Currency)Enum.Parse(typeof(Currency), updateAccountDTO.Currency);
         entity.AccountType = (AccountType)Enum.Parse(typeof(AccountType), updateAccountDTO.AccountType);
         entity.Description = updateAccountDTO.Description;
 
@@ -256,7 +256,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
             (
                 entity.Id,
                 entity.Name,
-                entity.Currency,
+                entity.Currency.ToString(),
                 entity.AccountType.ToString(),
                 entity.CreationDate.ToString(DateTimeStringFormat),
                 entity.Total,

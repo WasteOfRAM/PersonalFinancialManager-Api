@@ -16,8 +16,7 @@ public class Account
     [StringLength(maximumLength: AccountConstants.NameMaxLength)]
     public required string Name { get; set; }
 
-    [StringLength(maximumLength: AccountConstants.CurrencyMaxLength)]
-    public required string Currency { get; set; }
+    public Currency Currency { get; set; }
 
     public AccountType AccountType { get; set; }
 
