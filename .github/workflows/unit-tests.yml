@@ -15,7 +15,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore ./src/PersonalFinancialManager.sln
+      run: dotnet restore
+      working-directory: ${{ github.workspace }}
     - name: Build
       run: dotnet build ./src/PersonalFinancialManager.sln --configuration Debug --no-restore
     - name: Test
