@@ -10,12 +10,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Show current directory (for debugging)
-      run: pwd
-
-    - name: List all files in the repository (for debugging)
-      run: ls -R
-    
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -24,7 +18,5 @@ jobs:
       run: dotnet restore ./src/PersonalFinancialManager.sln
     - name: Build
       run: dotnet build ./src/PersonalFinancialManager.sln --configuration Debug --no-restore
-    - name: List test output folder (for debugging)
-      run: ls -R ./tests/PersonalFinancialManager.UnitTests/bin/Debug/net8.0
     - name: Test
       run: dotnet test tests/PersonalFinancialManager.UnitTests/PersonalFinancialManager.UnitTests.csproj --no-build --verbosity normal
