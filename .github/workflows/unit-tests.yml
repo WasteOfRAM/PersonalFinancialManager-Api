@@ -17,6 +17,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ./src/PersonalFinancialManager.sln
     - name: Build
-      run: dotnet build ./src/PersonalFinancialManager.sln --configuration Release --no-restore
+      run: dotnet build ./src/PersonalFinancialManager.sln --configuration Debug --no-restore
     - name: Test
       run: dotnet test tests/PersonalFinancialManager.UnitTests/PersonalFinancialManager.UnitTests.csproj --no-build --verbosity normal
