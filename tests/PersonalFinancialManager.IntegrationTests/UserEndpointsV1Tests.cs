@@ -18,8 +18,6 @@ using static PersonalFinancialManager.IntegrationTests.Constants.Passwords;
 public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) : IClassFixture<CustomWebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly HttpClient httpClient = factory.CreateClient();
-    private readonly IServiceScope serviceScope = factory.Services.CreateScope();
-    private AppDbContext? appDbContext;
 
     public static IEnumerable<object[]> InvalidUsers =>
     [
@@ -31,17 +29,21 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
 
     public async Task DisposeAsync()
     {
+        using var scope = factory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         await appDbContext!.Database.EnsureDeletedAsync();
-        serviceScope.Dispose();
     }
 
     public async Task InitializeAsync()
     {
-        appDbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        using var scope = factory.Services.CreateScope();
+
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await appDbContext!.Database.MigrateAsync();
 
-        var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
 
         var user = new AppUser
         {
@@ -65,6 +67,9 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Register, appUserDTO);
 
         // Assert
+        using var scope = factory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == appUserDTO.Email);
 
         Assert.NotNull(user);
@@ -100,12 +105,12 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var jsonResponse = await response.Content.ReadFromJsonAsync<AccessTokenDTO>();
 
         // Assert
+        using var scope = factory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == "user@test.com");
 
         Assert.NotNull(user);
-
-        await appDbContext.Entry(user).ReloadAsync();
-
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(jsonResponse);
         Assert.Equal(user.RefreshToken, jsonResponse.RefreshToken);
