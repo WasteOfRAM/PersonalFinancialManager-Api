@@ -12,6 +12,8 @@ using PersonalFinancialManager.Infrastructure.Data;
 using System.Net;
 using System.Net.Http.Json;
 
+using static PersonalFinancialManager.Infrastructure.Constants.InfrastructureValidationMessages;
+
 using static PersonalFinancialManager.IntegrationTests.Constants.EndpointsV1;
 using static PersonalFinancialManager.IntegrationTests.Constants.Passwords;
 
@@ -19,7 +21,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
 {
     private readonly HttpClient httpClient = factory.CreateClient();
 
-    public static IEnumerable<object[]> InvalidUsers =>
+    public static IEnumerable<object[]> InvalidCreateUsers =>
     [
         [new CreateUserDTO("user@test.com", ApplicationValidPassword)],
         [new CreateUserDTO("unique@test.com", ApplicationInvalidPasswordOne)],
@@ -27,13 +29,11 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         [new CreateUserDTO("unique@test.com", ApplicationInvalidPasswordThree)]
     ];
 
-    public async Task DisposeAsync()
-    {
-        using var scope = factory.Services.CreateScope();
-        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await appDbContext!.Database.EnsureDeletedAsync();
-    }
+    public static IEnumerable<object[]> InvalidLoginUsers =>
+    [
+        [new LoginDTO("user@test.com", ApplicationValidPasswordTwo)],
+        [new LoginDTO("nonExistingUser@test.com", ApplicationValidPassword)]
+    ];
 
     public async Task InitializeAsync()
     {
@@ -52,6 +52,14 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         };
 
         await userManager.CreateAsync(user, ApplicationValidPassword);
+    }
+
+    public async Task DisposeAsync()
+    {
+        using var scope = factory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await appDbContext!.Database.EnsureDeletedAsync();
     }
 
     [Fact]
@@ -77,7 +85,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
     }
 
     [Theory]
-    [MemberData(nameof(InvalidUsers))]
+    [MemberData(nameof(InvalidCreateUsers))]
     public async Task Register_With_Existing_Email_Or_Invalid_Password_Returns_StatusCode_BadRequest_With_Errors(CreateUserDTO appUserDTO)
     {
         // Arrange
@@ -114,5 +122,26 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(jsonResponse);
         Assert.Equal(user.RefreshToken, jsonResponse.RefreshToken);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidLoginUsers))]
+    public async Task Login_With_Invalid_User_Or_Password_Returns_StatusCode_BadRequest_With_Errors(LoginDTO loginDto)
+    {
+        // Arrange
+
+        // Act
+        var response = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
+
+        // Assert
+        var problemResult = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(problemResult?.Errors);
+        Assert.Collection(problemResult.Errors, error => Assert.Multiple(() =>
+        {
+            Assert.Equal(ErrorMessages.InvalidLogin.Code, error.Key);
+            Assert.Equal(ErrorMessages.InvalidLogin.Description, error.Value.First());
+        }));
     }
 }
