@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
@@ -45,7 +46,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var user = new AppUser
         {
             Email = "user@test.com",
-            UserName = "test@test.com"
+            UserName = "user@test.com"
         };
 
         await userManager.CreateAsync(user, ApplicationValidPassword);
@@ -64,6 +65,9 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Register, appUserDTO);
 
         // Assert
+        var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == appUserDTO.Email);
+
+        Assert.NotNull(user);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -81,5 +85,29 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(problemResult?.Errors);
+    }
+
+    [Fact]
+    public async Task Login_With_Existing_User_And_Correct_Password_Returns_StatusCode_OK_With_Access_And_Refresh_Tokens()
+    {
+        // Arrange
+
+        var loginDto = new LoginDTO("user@test.com", ApplicationValidPassword);
+
+        // Act
+        var response = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
+
+        var jsonResponse = await response.Content.ReadFromJsonAsync<AccessTokenDTO>();
+
+        // Assert
+        var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == "user@test.com");
+
+        Assert.NotNull(user);
+
+        await appDbContext.Entry(user).ReloadAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(jsonResponse);
+        Assert.Equal(user.RefreshToken, jsonResponse.RefreshToken);
     }
 }
