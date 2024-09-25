@@ -1,4 +1,4 @@
-﻿namespace PersonalFinancialManager.IntegrationTests;
+﻿namespace PersonalFinancialManager.IntegrationTests.Helpers;
 
 using Testcontainers.MsSql;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +14,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services => 
+        builder.ConfigureServices(services =>
         {
             var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
 

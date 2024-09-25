@@ -10,6 +10,7 @@ using PersonalFinancialManager.Application.DTOs.Authentication;
 using PersonalFinancialManager.Application.DTOs.User;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Infrastructure.Data;
+using PersonalFinancialManager.IntegrationTests.Helpers;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
