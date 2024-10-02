@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
 {
-    private readonly MsSqlContainer msSqlContainer = new MsSqlBuilder().WithName("MSSQLTests").Build();
+    private readonly MsSqlContainer msSqlContainer = new MsSqlBuilder().Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -23,7 +23,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
                 services.Remove(descriptor);
             }
 
-            msSqlContainer.StartAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            msSqlContainer.StartAsync().GetAwaiter().GetResult();
 
             // Testcontainers.MsSql does NOT support custom Database name in the connection string because if the database does not exist the connection will fail.
             // This is possible only because EF Core can create the database and needed because EF Core can perform operations on the database that are restricted by the master database.
