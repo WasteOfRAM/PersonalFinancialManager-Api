@@ -34,6 +34,10 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
                 options.UseSqlServer(connectionString);
             });
         });
+
+        builder.UseSetting("Jwt:Key", "TeStKeY-8hShWVAdgPn16QvOUtKndWBn5S5OBaVSzF-293tiNLc5nfPpxL4LFWeak2");
+        builder.UseSetting("Jwt:Issuer", "TestIssuer");
+        builder.UseSetting("Jwt:Audience", "Test");
     }
 
     public override async ValueTask DisposeAsync()
