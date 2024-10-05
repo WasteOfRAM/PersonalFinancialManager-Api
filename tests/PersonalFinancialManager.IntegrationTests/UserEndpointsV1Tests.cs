@@ -18,60 +18,34 @@ using System.Net.Http.Json;
 using static PersonalFinancialManager.Infrastructure.Constants.InfrastructureValidationMessages;
 
 using static PersonalFinancialManager.IntegrationTests.Constants.EndpointsV1;
-using static PersonalFinancialManager.IntegrationTests.Constants.Passwords;
+using static PersonalFinancialManager.IntegrationTests.Constants.Commons;
 
-public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) : IClassFixture<CustomWebApplicationFactory<Program>>, IAsyncLifetime
+[Collection("Tests collection")]
+public class UserEndpointsV1Tests(TestsFixture testsFixture)
 {
-    private readonly HttpClient httpClient = factory.CreateClient();
-    private const string seededUserEmail = "user@test.com";
+    private readonly HttpClient httpClient = testsFixture.AppFactory.CreateClient();
 
-    public static IEnumerable<object[]> InvalidCreateUsers =>
+    public static readonly TheoryData<CreateUserDTO> InvalidCreateUsers =
     [
-        [new CreateUserDTO(seededUserEmail, ApplicationValidPassword)],
-        [new CreateUserDTO("unique@test.com", ApplicationInvalidPasswordOne)],
-        [new CreateUserDTO("unique@test.com", ApplicationInvalidPasswordTwo)],
-        [new CreateUserDTO("unique@test.com", ApplicationInvalidPasswordThree)]
+        new CreateUserDTO(UserEmails.TestUserEmail, Passwords.ApplicationValidPassword),
+        new CreateUserDTO("unique@test.com", Passwords.ApplicationInvalidPasswordOne),
+        new CreateUserDTO("unique@test.com", Passwords.ApplicationInvalidPasswordTwo),
+        new CreateUserDTO("unique@test.com", Passwords.ApplicationInvalidPasswordThree),
+        new CreateUserDTO("uniquetest.com", Passwords.ApplicationValidPassword)
     ];
 
-    public static IEnumerable<object[]> InvalidLoginUsers =>
+    public static readonly TheoryData<LoginDTO> InvalidLoginUsers =
     [
-        [new LoginDTO(seededUserEmail, ApplicationValidPasswordTwo)],
-        [new LoginDTO("nonExistingUser@test.com", ApplicationValidPassword)]
+        new LoginDTO(UserEmails.TestUserEmail, Passwords.ApplicationValidPasswordTwo),
+        new LoginDTO("nonExistingUser@test.com", Passwords.ApplicationValidPassword)
     ];
-
-    public async Task InitializeAsync()
-    {
-        using var scope = factory.Services.CreateScope();
-
-        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await appDbContext!.Database.MigrateAsync();
-
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-
-        var user = new AppUser
-        {
-            Email = seededUserEmail,
-            UserName = seededUserEmail
-        };
-
-        await userManager.CreateAsync(user, ApplicationValidPassword);
-    }
-
-    public async Task DisposeAsync()
-    {
-        using var scope = factory.Services.CreateScope();
-        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await appDbContext!.Database.EnsureDeletedAsync();
-    }
 
     [Fact]
     public async Task Register_With_Unique_Email_And_Valid_Password_Returns_StatusCode_Ok()
     {
         // Arrange
         var faker = new Faker<CreateUserDTO>()
-            .CustomInstantiator(f => new CreateUserDTO(f.Internet.Email(), ApplicationValidPassword));
+            .CustomInstantiator(f => new CreateUserDTO(f.Internet.Email(), Passwords.ApplicationValidPassword));
 
         var appUserDTO = faker.Generate();
 
@@ -79,7 +53,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Register, appUserDTO);
 
         // Assert
-        using var scope = factory.Services.CreateScope();
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == appUserDTO.Email);
@@ -109,7 +83,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
     {
         // Arrange
 
-        var loginDto = new LoginDTO(seededUserEmail, ApplicationValidPassword);
+        var loginDto = new LoginDTO(UserEmails.TestUserEmail, Passwords.ApplicationValidPassword);
 
         // Act
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
@@ -117,10 +91,10 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var jsonResponse = await response.Content.ReadFromJsonAsync<AccessTokenDTO>();
 
         // Assert
-        using var scope = factory.Services.CreateScope();
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == seededUserEmail);
+        var user = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == UserEmails.TestUserEmail);
 
         Assert.NotNull(user);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -155,7 +129,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         // Arrange
         string testUserEmail = "refreshTokenTest@test.com";
 
-        using var scope = factory.Services.CreateScope();
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
 
@@ -165,14 +139,14 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
             UserName = testUserEmail
         };
 
-        await userManager.CreateAsync(user, ApplicationValidPassword);
+        await userManager.CreateAsync(user, Passwords.ApplicationValidPassword);
 
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         // Overriding access token expiration to create a user with expired access token
         configuration["Jwt:TokenExpirationInMinutes"] = "0,0001";
 
-        var loginDto = new LoginDTO(testUserEmail, ApplicationValidPassword);
+        var loginDto = new LoginDTO(testUserEmail, Passwords.ApplicationValidPassword);
         var loginResponse = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
         var accessTokens = await loginResponse.Content.ReadFromJsonAsync<AccessTokenDTO>();
 
@@ -187,7 +161,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Refresh, refreshTokenDTO);
         var refreshedTokens = await response.Content.ReadFromJsonAsync<AccessTokenDTO>();
 
-        using var dbScope = factory.Services.CreateScope();
+        using var dbScope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = dbScope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var userEntity = await appDbContext!.Users.FirstOrDefaultAsync(u => u.Email == testUserEmail);
@@ -205,7 +179,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         // Arrange
         string testUserEmail = "refreshTokenTest@test.com";
 
-        using var scope = factory.Services.CreateScope();
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
 
@@ -215,7 +189,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
             UserName = testUserEmail
         };
 
-        await userManager.CreateAsync(user, ApplicationValidPassword);
+        await userManager.CreateAsync(user, Passwords.ApplicationValidPassword);
 
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
@@ -223,7 +197,7 @@ public class UserEndpointsV1Tests(CustomWebApplicationFactory<Program> factory) 
         configuration["Jwt:TokenExpirationInMinutes"] = "0,0001";
         configuration["Jwt:RefreshTokenExpirationInMinutes"] = "0,0001";
 
-        var loginDto = new LoginDTO(testUserEmail, ApplicationValidPassword);
+        var loginDto = new LoginDTO(testUserEmail, Passwords.ApplicationValidPassword);
         var loginResponse = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
         var accessTokens = await loginResponse.Content.ReadFromJsonAsync<AccessTokenDTO>();
 
