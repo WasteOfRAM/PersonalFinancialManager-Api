@@ -16,11 +16,11 @@ using static PersonalFinancialManager.IntegrationTests.Constants.Commons;
 public class TestsFixture
 {   
     private readonly CustomWebApplicationFactory<Program> appFactory;
-    private readonly string accessToken;
+    private readonly string seededUserAccessToken;
     private readonly string seededUserId;
 
     public CustomWebApplicationFactory<Program> AppFactory { get { return appFactory; } }
-    public string AccessToken { get { return accessToken; } }
+    public string SeededUserAccessToken { get { return seededUserAccessToken; } }
     public string SeededUserId {  get { return seededUserId; } }
 
     public TestsFixture()
@@ -50,6 +50,6 @@ public class TestsFixture
         var response = httpClient.PostAsJsonAsync(UserEndpoints.Login, new LoginDTO(UserEmails.TestUserEmail, Passwords.ApplicationValidPassword)).GetAwaiter().GetResult();
         var accessTokenDTO = response.Content.ReadFromJsonAsync<AccessTokenDTO>().GetAwaiter().GetResult();
 
-        accessToken = accessTokenDTO!.AccessToken;
+        seededUserAccessToken = accessTokenDTO!.AccessToken;
     }
 }
