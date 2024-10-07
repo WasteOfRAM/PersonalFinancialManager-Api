@@ -11,6 +11,8 @@ public static class EndpointsV1
 
     public static class AccountEndpoints
     {
-        public const string Account = "/api/v1/account";
+        public const string AccountBase = "/api/v1/account";
+        public const string AccountWithId = "/api/v1/account/{0}";
+        public const string AccountWithIdAndTransactions = "/api/v1/account/{0}/transactions";
     }
 }
