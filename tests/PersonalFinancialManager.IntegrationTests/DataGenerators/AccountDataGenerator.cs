@@ -32,6 +32,14 @@ public class AccountDataGenerator(Guid userId)
             f.Finance.Amount(minValue, maxValue, DecimalPrecisionConstant.Scale).OrNull(f, 0.3f),
             f.Random.Words().OrNull(f)));
 
+    private readonly Faker<UpdateAccountDTO> updateAccountDto = new Faker<UpdateAccountDTO>()
+        .CustomInstantiator(f => new UpdateAccountDTO(
+            Guid.Empty.ToString(),
+            f.Random.String2(AccountConstants.NameMaxLength),
+            f.Random.Enum<Currency>().ToString(),
+            f.Random.Enum<AccountType>().ToString(),
+            f.Random.Words().OrNull(f)));
+
     public List<Account> GenerateAccountEntities(int itemsCount = 1)
     {
         return accountEntities.Generate(itemsCount);
@@ -40,5 +48,10 @@ public class AccountDataGenerator(Guid userId)
     public List<CreateAccountDTO> GenerateCreateAccountDTO(int itemsCount = 1)
     {
         return createAccountDTOs.Generate(itemsCount);
+    }
+
+    public UpdateAccountDTO GenerateUpdateAccountDTO(string accountId)
+    {
+        return updateAccountDto.Generate() with { Id = accountId };
     }
 }
