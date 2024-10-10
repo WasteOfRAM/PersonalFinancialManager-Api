@@ -24,7 +24,7 @@ public class AccountDataGenerator(Guid userId)
         .RuleFor(p => p.Description, f => f.Random.Words().OrNull(f, 0.3f))
         .RuleFor(p => p.AppUserId, userId);
 
-    private readonly Faker<CreateAccountDTO> createAccountDTOs = new Faker<CreateAccountDTO>()
+    private readonly Faker<CreateAccountDTO> createAccountDTO = new Faker<CreateAccountDTO>()
         .CustomInstantiator(f => new CreateAccountDTO(
             f.Random.String2(AccountConstants.NameMaxLength),
             f.Random.Enum<Currency>().ToString(),
@@ -47,7 +47,7 @@ public class AccountDataGenerator(Guid userId)
 
     public List<CreateAccountDTO> GenerateCreateAccountDTO(int itemsCount = 1)
     {
-        return createAccountDTOs.Generate(itemsCount);
+        return createAccountDTO.Generate(itemsCount);
     }
 
     public UpdateAccountDTO GenerateUpdateAccountDTO(string accountId)
