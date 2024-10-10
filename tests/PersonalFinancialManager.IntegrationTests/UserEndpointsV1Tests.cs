@@ -110,10 +110,9 @@ public class UserEndpointsV1Tests(TestsFixture testsFixture)
 
         // Act
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Login, loginDto);
-
-        // Assert
         var problemResult = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
 
+        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(problemResult?.Errors);
         Assert.Collection(problemResult.Errors, error => Assert.Multiple(() =>
