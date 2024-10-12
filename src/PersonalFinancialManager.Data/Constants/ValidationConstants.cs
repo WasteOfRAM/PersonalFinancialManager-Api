@@ -16,6 +16,12 @@ public static class ValidationConstants
         public const int Scale = 4;
     }
 
+    public static class DecimalRangeConstants
+    {
+        public const string DecimalRangeMinimumValue = "0.0";
+        public const string DecimalRangeMaximumValue = "999999999999999.9999";
+    }
+
     public static class AccountConstants
     {
         public const int NameMaxLength = 10;
