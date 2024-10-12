@@ -264,4 +264,125 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
         appDbContext.RemoveRange(generatedEntities);
         await appDbContext.SaveChangesAsync();
     }
+
+    [Fact]
+    public async Task Update_With_NonExisting_TransactionId_Returns_StatusCode_NotFound()
+    {
+        // Arrange
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
+
+        int generateAccountsCount = 3;
+        int generateTransactionsCount = 5;
+
+        var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
+        var testAccountEntity = generatedEntities[0];
+
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await appDbContext.AddRangeAsync(generatedEntities);
+
+        var transactionGenerator = new TransactionDataGenerator(testAccountEntity.Id);
+
+        var generatedTransactions = transactionGenerator.GenerateTransactionEntities(generateTransactionsCount);
+        testAccountEntity.Transactions = generatedTransactions;
+
+        await appDbContext.SaveChangesAsync();
+
+        var updateTransactionDTO = transactionGenerator.GenerateUpdateTransactionDTO(Guid.NewGuid().ToString());
+
+        // Act
+        var response = await httpClient.PutAsJsonAsync(TransactionEndpoints.TransactionBase, updateTransactionDTO);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        // Cleanup
+        appDbContext.RemoveRange(generatedEntities);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Delete_With_Existing_TransactionId_Returns_StatusCode_NoContent()
+    {
+        // Arrange
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
+
+        int generateAccountsCount = 2;
+        int generateTransactionsCount = 3;
+
+        var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
+        var testAccountEntity = generatedEntities[0];
+
+        testAccountEntity.Total = 0.0m;
+
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await appDbContext.AddRangeAsync(generatedEntities);
+
+        var transactionGenerator = new TransactionDataGenerator(testAccountEntity.Id);
+
+        var generatedTransactions = transactionGenerator.GenerateTransactionEntities(generateTransactionsCount);
+        testAccountEntity.Transactions = generatedTransactions;
+
+        await appDbContext.SaveChangesAsync();
+
+        var testTransactionEntity = generatedTransactions[0];
+
+        // Act
+        var response = await httpClient.DeleteAsync(string.Format(TransactionEndpoints.TransactionWithId, testTransactionEntity.Id));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var deletedTransactionExists = await appDbContext.Transactions.AnyAsync(t => t.Id == testTransactionEntity.Id);
+        Assert.False(deletedTransactionExists);
+
+        // Cleanup
+        appDbContext.Entry(testAccountEntity).State = EntityState.Detached;
+        generatedEntities = await appDbContext.Accounts.ToListAsync();
+        appDbContext.RemoveRange(generatedEntities);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Delete_With_NonExisting_TransactionId_Returns_StatusCode_NotFound()
+    {
+        // Arrange
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
+
+        int generateAccountsCount = 2;
+        int generateTransactionsCount = 3;
+
+        var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
+        var testAccountEntity = generatedEntities[0];
+
+        testAccountEntity.Total = 0.0m;
+
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await appDbContext.AddRangeAsync(generatedEntities);
+
+        var transactionGenerator = new TransactionDataGenerator(testAccountEntity.Id);
+
+        var generatedTransactions = transactionGenerator.GenerateTransactionEntities(generateTransactionsCount);
+        testAccountEntity.Transactions = generatedTransactions;
+
+        await appDbContext.SaveChangesAsync();
+
+        var testTransactionEntity = generatedTransactions[0];
+
+        // Act
+        var response = await httpClient.DeleteAsync(string.Format(TransactionEndpoints.TransactionWithId, Guid.NewGuid().ToString()));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+
+        // Cleanup
+        appDbContext.RemoveRange(generatedEntities);
+        await appDbContext.SaveChangesAsync();
+    }
 }
