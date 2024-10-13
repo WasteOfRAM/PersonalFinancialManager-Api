@@ -5,6 +5,7 @@ using PersonalFinancialManager.Core.Enumerations;
 using System.ComponentModel.DataAnnotations;
 
 using static PersonalFinancialManager.Core.Constants.ValidationConstants;
+using static PersonalFinancialManager.Application.Constants.ApplicationCommonConstants;
 
 public record CreateAccountDTO
 (
@@ -17,8 +18,7 @@ public record CreateAccountDTO
     [property: Required] [property: EnumDataType(typeof(AccountType))] 
     string AccountType,
 
-    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] 
-    [property: DecimalRange(DecimalRangeConstants.DecimalRangeMinimumValue, DecimalRangeConstants.DecimalRangeMaximumValue)]
+    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] [property: DecimalRange(DecimalRangeMinimumValue, DecimalRangeMaximumValue)]
     decimal? Total,
 
     [property: StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)] 

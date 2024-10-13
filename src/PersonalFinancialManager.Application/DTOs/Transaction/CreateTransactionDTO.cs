@@ -5,6 +5,7 @@ using PersonalFinancialManager.Core.Enumerations;
 using System.ComponentModel.DataAnnotations;
 
 using static PersonalFinancialManager.Core.Constants.ValidationConstants;
+using static PersonalFinancialManager.Application.Constants.ApplicationCommonConstants;
 
 public record CreateTransactionDTO
 (
@@ -14,8 +15,7 @@ public record CreateTransactionDTO
     [property : Required] [property : EnumDataType(typeof(TransactionType))]
     string TransactionType,
 
-    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] 
-    [property: DecimalRange(DecimalRangeConstants.DecimalRangeMinimumValue, DecimalRangeConstants.DecimalRangeMaximumValue)]
+    [property: DecimalPrecision(DecimalPrecisionConstant.Precision, DecimalPrecisionConstant.Scale)] [property: DecimalRange(DecimalRangeMinimumValue, DecimalRangeMaximumValue)]
     decimal Amount,
 
     [property : StringLength(maximumLength: CommonConstants.DescriptionMaxLength, MinimumLength = CommonConstants.DescriptionMinLength)]
