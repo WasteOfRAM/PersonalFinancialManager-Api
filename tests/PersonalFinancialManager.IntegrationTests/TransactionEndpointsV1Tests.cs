@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PersonalFinancialManager.Application.DTOs.Transaction;
 using PersonalFinancialManager.Application.Queries;
+using PersonalFinancialManager.Core.Enumerations;
 using PersonalFinancialManager.Infrastructure.Data;
 using PersonalFinancialManager.IntegrationTests.DataGenerators;
 using PersonalFinancialManager.IntegrationTests.Helpers;
@@ -13,6 +14,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 using static PersonalFinancialManager.IntegrationTests.Constants.EndpointsV1;
+using static PersonalFinancialManager.Application.Constants.ApplicationValidationMessages;
 
 [Collection("Tests collection")]
 public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
@@ -21,6 +23,14 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
     private readonly string testUserAccessToken = testsFixture.SeededUserAccessToken;
 
     private readonly AccountDataGenerator accountDataGenerator = new(Guid.Parse(testsFixture.SeededUserId));
+
+    public static TheoryData<decimal, decimal, TransactionType, string> CreateTransactionOutOfRange => new()
+    {
+        { 0.0m, 0.01m, TransactionType.Withdraw, ErrorMessages.AccountTotalMinValue.Code },
+        { 0.0m, 100.00m, TransactionType.Withdraw, ErrorMessages.AccountTotalMinValue.Code },
+        { 0.0001m, 999999999999999.9999m, TransactionType.Deposit, ErrorMessages.AccountTotalMaxValue.Code },
+        { 999999999999999.9999m, 0.0001m, TransactionType.Deposit, ErrorMessages.AccountTotalMaxValue.Code }
+    };
 
     [Fact]
     public async Task Create_Transaction_With_Valid_Data_Returns_StatusCode_Ok_With_The_Created_Transaction()
@@ -42,7 +52,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
         // Act
         var response = await httpClient.PostAsJsonAsync(TransactionEndpoints.TransactionBase, createTransactionDTO);
         var responseTransactionDTO = await response.Content.ReadFromJsonAsync<TransactionDTO>();
-        
+
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseTransactionDTO);
@@ -78,7 +88,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
 
         var transactionGenerator = new TransactionDataGenerator(generatedTestAccount.Id);
 
-        var createTransactionDTO = transactionGenerator.GenerateCreateTransactionDTO() with { TransactionType = "NotExistingType"};
+        var createTransactionDTO = transactionGenerator.GenerateCreateTransactionDTO() with { TransactionType = "NotExistingType" };
 
         // Act
         var response = await httpClient.PostAsJsonAsync(TransactionEndpoints.TransactionBase, createTransactionDTO);
@@ -87,6 +97,39 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(problemResult?.Errors);
+
+        // Cleanup
+        appDbContext.Remove(generatedTestAccount);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateTransactionOutOfRange))]
+    public async Task Create_Transaction_That_Will_Put_AccountTotal_Out_Of_Range_Returns_StatusCode_BadRequest_With_Errors(decimal accountTotal, decimal transactionAmount, TransactionType transactionType, string expectedErrorMsgCode)
+    {
+        // Arrange
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
+
+        var generatedTestAccount = accountDataGenerator.GenerateAccountEntities()[0];
+        generatedTestAccount.Total = accountTotal;
+
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await appDbContext.Accounts.AddAsync(generatedTestAccount);
+        await appDbContext.SaveChangesAsync();
+
+        var transactionGenerator = new TransactionDataGenerator(generatedTestAccount.Id);
+
+        var createTransactionDTO = transactionGenerator.GenerateCreateTransactionDTO() with { Amount = transactionAmount, TransactionType = transactionType.ToString() };
+
+        // Act
+        var response = await httpClient.PostAsJsonAsync(TransactionEndpoints.TransactionBase, createTransactionDTO);
+        var problemResult = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(problemResult?.Errors);
+        Assert.Equal(expectedErrorMsgCode, problemResult.Errors.First().Key);
 
         // Cleanup
         appDbContext.Remove(generatedTestAccount);
