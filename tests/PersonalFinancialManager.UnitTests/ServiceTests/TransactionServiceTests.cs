@@ -8,6 +8,9 @@ using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Core.Enumerations;
 using System.Linq.Expressions;
 
+using static PersonalFinancialManager.Application.Constants.ApplicationCommonConstants;
+using static PersonalFinancialManager.Application.Constants.ApplicationValidationMessages;
+
 public class TransactionServiceTests
 {
     private readonly IAccountRepository accountRepository;
@@ -15,6 +18,14 @@ public class TransactionServiceTests
     private readonly TransactionService transactionService;
 
     private readonly Fixture fixture;
+
+    public static TheoryData<decimal, decimal, TransactionType> UpdateTransactionData => new()
+    {
+        { 0.0m, 0.01m, TransactionType.Withdraw },
+        { 0.0m, 100.00m, TransactionType.Withdraw },
+        { 0.0001m, 999999999999999.9999m, TransactionType.Deposit },
+        { 999999999999999.9999m, 0.0001m, TransactionType.Deposit }
+    };
 
     public TransactionServiceTests()
     {
@@ -53,7 +64,7 @@ public class TransactionServiceTests
 
             transactionRepository.DidNotReceiveWithAnyArgs().AddAsync(Arg.Any<Transaction>());
             transactionRepository.DidNotReceiveWithAnyArgs().SaveAsync();
-            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<TransactionType>(), Arg.Any<decimal>());
+            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
         });
     }
 
@@ -81,7 +92,67 @@ public class TransactionServiceTests
 
             transactionRepository.ReceivedWithAnyArgs().AddAsync(Arg.Any<Transaction>());
             transactionRepository.ReceivedWithAnyArgs().SaveAsync();
-            accountRepository.ReceivedWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<TransactionType>(), Arg.Any<decimal>());
+            accountRepository.ReceivedWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
+        });
+    }
+
+    [Theory]
+    [InlineData(0.0001, 999999999999999.9999)]
+    [InlineData(999999999999999.9999, 0.0001)]
+    public async Task CreateAsync_With_TransactionAmount_That_Will_Exceed_Account_Total_Returns_ResultSuccess_False_With_Error(decimal accountTotal, decimal transactionAmount)
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var createTransactionDTO = fixture.Create<CreateTransactionDTO>();
+        var account = fixture.Create<Account>();
+        account.Total = accountTotal;
+        createTransactionDTO = createTransactionDTO with { Amount = transactionAmount, TransactionType = "Deposit" };
+
+        accountRepository.GetAsync(Arg.Any<Expression<Func<Account, bool>>>()).Returns(account);
+
+        // Act
+
+        var result = await transactionService.CreateAsync(createTransactionDTO, userId);
+
+        // Assert
+
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.NotNull(result.Errors);
+            Assert.Null(result.Data);
+            Assert.Equal(ErrorMessages.AccountTotalMaxValue.Code, result.Errors.First().Key);
+            Assert.Equal(string.Format(ErrorMessages.AccountTotalMaxValue.Description, DecimalRangeMaximumValue), result.Errors.First().Value[0]);
+        });
+    }
+
+    [Theory]
+    [InlineData(0.01)]
+    [InlineData(100.00)]
+    public async Task CreateAsync_With_TransactionAmount_That_Will_Make_Account_Total_NegativeNumber_Returns_ResultSuccess_False_With_Error(decimal transactionAmount)
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var createTransactionDTO = fixture.Create<CreateTransactionDTO>();
+        var account = fixture.Create<Account>();
+        account.Total = 0;
+        createTransactionDTO = createTransactionDTO with { Amount = transactionAmount, TransactionType = "Withdraw" };
+
+        accountRepository.GetAsync(Arg.Any<Expression<Func<Account, bool>>>()).Returns(account);
+
+        // Act
+
+        var result = await transactionService.CreateAsync(createTransactionDTO, userId);
+
+        // Assert
+
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.NotNull(result.Errors);
+            Assert.Null(result.Data);
+            Assert.Equal(ErrorMessages.AccountTotalMinValue.Code, result.Errors.First().Key);
+            Assert.Equal(ErrorMessages.AccountTotalMinValue.Description, result.Errors.First().Value[0]);
         });
     }
 
@@ -104,7 +175,7 @@ public class TransactionServiceTests
             Assert.False(result.Success);
             Assert.Null(result.Errors);
 
-            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<TransactionType>(), Arg.Any<decimal>());
+            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
             transactionRepository.DidNotReceiveWithAnyArgs().Delete(Arg.Any<Transaction>());
             transactionRepository.DidNotReceive().SaveAsync();
         });
@@ -131,9 +202,39 @@ public class TransactionServiceTests
             Assert.True(result.Success);
             Assert.Null(result.Errors);
 
-            accountRepository.ReceivedWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<TransactionType>(), Arg.Any<decimal>());
+            accountRepository.ReceivedWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
             transactionRepository.ReceivedWithAnyArgs().Delete(Arg.Any<Transaction>());
             transactionRepository.Received().SaveAsync();
+        });
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Deleting_Transaction_That_Was_NOT_Latest_Returns_ResultSuccess_False_With_Error()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var transactionId = Guid.NewGuid();
+
+        var transaction = fixture.Create<Transaction>();
+
+        transactionRepository.AnyAsync(Arg.Any<Expression<Func<Transaction, bool>>>()).ReturnsForAnyArgs(true);
+        transactionRepository.GetAsync(Arg.Any<Expression<Func<Transaction, bool>>>()).ReturnsForAnyArgs(transaction);
+
+        // Act
+
+        var result = await transactionService.DeleteAsync(transactionId, userId);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.NotNull(result.Errors);
+            Assert.Equal(ErrorMessages.ForbiddenTransactionDeletion.Code, result.Errors.First().Key);
+            Assert.Equal(ErrorMessages.ForbiddenTransactionDeletion.Description, result.Errors.First().Value[0]);
+
+            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
+            transactionRepository.DidNotReceiveWithAnyArgs().Delete(Arg.Any<Transaction>());
+            transactionRepository.DidNotReceive().SaveAsync();
         });
     }
 
@@ -293,9 +394,72 @@ public class TransactionServiceTests
             Assert.Null(result.Errors);
             Assert.NotNull(result.Data);
 
-            accountRepository.Received().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<TransactionType>(), Arg.Any<decimal>());
+            accountRepository.Received().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
             transactionRepository.ReceivedWithAnyArgs().Update(transaction);
             transactionRepository.Received().SaveAsync();
+        });
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Updating_Transaction_That_Is_NOT_The_Latest_Returns_ResultSuccess_False_With_Error()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var transaction = fixture.Create<Transaction>();
+        var updateTransactionDTO = fixture.Create<UpdateTransactionDTO>();
+
+        transactionRepository.AnyAsync(Arg.Any<Expression<Func<Transaction, bool>>>()).ReturnsForAnyArgs(true);
+        transactionRepository.GetAsync(Arg.Any<Expression<Func<Transaction, bool>>>()).ReturnsForAnyArgs(transaction);
+
+        // Act
+        var result = await transactionService.UpdateAsync(updateTransactionDTO, userId);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.NotNull(result.Errors);
+            Assert.Null(result.Data);
+            Assert.Equal(ErrorMessages.ForbiddenTransactionEdit.Code, result.Errors.First().Key);
+            Assert.Equal(ErrorMessages.ForbiddenTransactionEdit.Description, result.Errors.First().Value[0]);
+
+            accountRepository.DidNotReceiveWithAnyArgs().UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>());
+            transactionRepository.DidNotReceiveWithAnyArgs().Update(transaction);
+            transactionRepository.DidNotReceive().SaveAsync();
+        });
+    }
+
+    [Theory]
+    [MemberData(nameof(UpdateTransactionData))]
+    public async Task UpdateAsync_With_Existing_Transaction_Id_And_User_Owner_That_Will_Make_Account_Total_RangeInvalid_Returns_ResultSuccess_False_With_Error(decimal accountTotal, decimal updateTransactionAmount, TransactionType transactionType)
+    {
+        // Arrange
+        decimal transactionEntityAmount = 15.00m;
+
+        var userId = Guid.NewGuid().ToString();
+        var updateTransactionDTO = fixture.Create<UpdateTransactionDTO>() with { Amount = updateTransactionAmount, TransactionType = transactionType.ToString() };
+
+        var transaction = fixture.Create<Transaction>();
+        transaction.TransactionType = TransactionType.Deposit;
+        transaction.Amount = transactionEntityAmount;
+        transaction.Account!.Total = accountTotal + transactionEntityAmount;
+
+        transactionRepository.GetAsync(Arg.Any<Expression<Func<Transaction, bool>>>()).ReturnsForAnyArgs(transaction);
+
+        accountRepository.When(r => r.UpdateAccountTotal(Arg.Any<Account>(), Arg.Any<decimal>(), Arg.Any<TransactionType>()))
+                         .Do(r => transaction.Account!.Total -= transaction.Amount);
+
+        // Act
+        var result = await transactionService.UpdateAsync(updateTransactionDTO, userId);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.False(result.Success);
+            Assert.NotNull(result.Errors);
+            Assert.Null(result.Data);
+
+            transactionRepository.DidNotReceive().SaveAsync();
         });
     }
 }
