@@ -178,7 +178,7 @@ public class AccountService(IAccountRepository accountRepository, ITransactionRe
         if (!string.IsNullOrWhiteSpace(transactionsQuery.Search))
         {
             filter = transaction => transaction.AccountId == id &&
-                                    transaction.Description != null ? transaction.Description.Contains(transactionsQuery.Search) : false;
+                                    transaction.Description != null && transaction.Description.Contains(transactionsQuery.Search);
         }
 
         var queryResult = await transactionRepository.GetAllAsync(filter,

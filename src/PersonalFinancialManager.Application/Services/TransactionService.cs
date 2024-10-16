@@ -8,6 +8,7 @@ using PersonalFinancialManager.Application.ServiceModels;
 using PersonalFinancialManager.Core.Entities;
 using PersonalFinancialManager.Core.Enumerations;
 using System;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -25,6 +26,12 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
             return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.AccountId.Code, [ErrorMessages.AccountId.Description] } } };
         }
 
+        var accountTotalValidation = ValidateAccountTotalRange(account.Total, createTransactionDTO.Amount, createTransactionDTO.TransactionType);
+        if (accountTotalValidation is not null)
+        {
+            return accountTotalValidation;
+        }
+
         Transaction entity = new()
         {
             AccountId = account.Id,
@@ -35,7 +42,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         };
 
         await transactionRepository.AddAsync(entity);
-        accountRepository.UpdateAccountTotal(account, entity.TransactionType, entity.Amount);
+        accountRepository.UpdateAccountTotal(account, entity.Amount, entity.TransactionType);
 
         _ = await transactionRepository.SaveAsync();
 
@@ -65,9 +72,14 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
             return new() { Success = false };
         }
 
+        if (await transactionRepository.AnyAsync(t => t.CreationDate > transaction.CreationDate))
+        {
+            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.ForbiddenTransactionDeletion.Code, [ErrorMessages.ForbiddenTransactionDeletion.Description] } } };
+        }
+
         var transactionType = transaction.TransactionType == TransactionType.Deposit ? TransactionType.Withdraw : TransactionType.Deposit;
 
-        accountRepository.UpdateAccountTotal(transaction.Account!, transactionType, transaction.Amount);
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.Amount, transactionType);
 
         transactionRepository.Delete(transaction);
 
@@ -83,7 +95,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         if (!string.IsNullOrWhiteSpace(queryModel.Search))
         {
             filter = transaction => transaction.Account!.AppUserId.ToString() == userId &&
-                                    transaction.Description != null ? transaction.Description.Contains(queryModel.Search) : false;
+                                    transaction.Description != null && transaction.Description.Contains(queryModel.Search);
         }
 
         var transactions = await transactionRepository.GetAllAsync(filter,
@@ -164,9 +176,20 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
             return new() { Success = false };
         }
 
-        // Reverting the account total to before the transaction was created.
+        if (await transactionRepository.AnyAsync(t => t.CreationDate > transaction.CreationDate))
+        {
+            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.ForbiddenTransactionEdit.Code, [ErrorMessages.ForbiddenTransactionEdit.Description] } } };
+        }
+
+        // Reverting the account total to before the transaction was created. (Without updating the DB)
         var transactionType = transaction.TransactionType == TransactionType.Deposit ? TransactionType.Withdraw : TransactionType.Deposit;
-        accountRepository.UpdateAccountTotal(transaction.Account!, transactionType, transaction.Amount);
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.Amount, transactionType);
+
+        var accountTotalValidation = ValidateAccountTotalRange(transaction.Account!.Total, updateTransactionDTO.Amount, updateTransactionDTO.TransactionType);
+        if (accountTotalValidation is not null)
+        {
+            return accountTotalValidation;
+        }
 
         // Updating the transaction.
         transaction.TransactionType = (TransactionType)Enum.Parse(typeof(TransactionType), updateTransactionDTO.TransactionType);
@@ -175,7 +198,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         transactionRepository.Update(transaction);
 
         // Updating the account with the updated transaction.
-        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.TransactionType, transaction.Amount);
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.Amount, transaction.TransactionType);
 
         _ = await transactionRepository.SaveAsync();
 
@@ -194,5 +217,20 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         };
 
         return result;
+    }
+
+    private static ServiceResult<TransactionDTO>? ValidateAccountTotalRange(decimal accountCurrentTotal, decimal transactionAmount, string transactionType)
+    {
+        if (transactionType == nameof(TransactionType.Deposit) && accountCurrentTotal + transactionAmount > decimal.Parse(DecimalRangeMaximumValue, CultureInfo.InvariantCulture))
+        {
+            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.AccountTotalMaxValue.Code, [string.Format(ErrorMessages.AccountTotalMaxValue.Description, DecimalRangeMaximumValue)] } } };
+        }
+
+        if (transactionType == nameof(TransactionType.Withdraw) && accountCurrentTotal - transactionAmount < decimal.Parse(DecimalRangeMinimumValue, CultureInfo.InvariantCulture))
+        {
+            return new ServiceResult<TransactionDTO> { Success = false, Errors = new() { { ErrorMessages.AccountTotalMinValue.Code, [ErrorMessages.AccountTotalMinValue.Description] } } };
+        }
+
+        return null;
     }
 }

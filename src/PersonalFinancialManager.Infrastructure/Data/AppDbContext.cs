@@ -13,6 +13,9 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<AppUser,
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<Account>()
+            .ToTable(tb => tb.HasCheckConstraint("CK_TotalNonNegative", "[Total] >= 0.0"));
+
         base.OnModelCreating(builder);
     }
 }

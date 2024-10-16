@@ -7,15 +7,15 @@ using PersonalFinancialManager.Infrastructure.Data;
 
 public class AccountRepository(AppDbContext dbContext) : RepositoryBase<Account>(dbContext), IAccountRepository
 {
-    public void UpdateAccountTotal(Account account, TransactionType transactionType, decimal amount)
+    public void UpdateAccountTotal(Account account, decimal transactionAmount, TransactionType transactionType)
     {
         if (transactionType == TransactionType.Deposit)
         {
-            account.Total += amount;
+            account.Total += transactionAmount;
         }
         else
         {
-            account.Total -= amount;
+            account.Total -= transactionAmount;
         }
 
         DbSet.Update(account);
