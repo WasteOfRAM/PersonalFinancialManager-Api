@@ -35,7 +35,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         };
 
         await transactionRepository.AddAsync(entity);
-        accountRepository.UpdateAccountTotal(account, entity.TransactionType, entity.Amount);
+        accountRepository.UpdateAccountTotal(account, entity.Amount, entity.TransactionType);
 
         _ = await transactionRepository.SaveAsync();
 
@@ -67,7 +67,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
 
         var transactionType = transaction.TransactionType == TransactionType.Deposit ? TransactionType.Withdraw : TransactionType.Deposit;
 
-        accountRepository.UpdateAccountTotal(transaction.Account!, transactionType, transaction.Amount);
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.Amount, transactionType);
 
         transactionRepository.Delete(transaction);
 
@@ -175,7 +175,7 @@ public class TransactionService(ITransactionRepository transactionRepository, IA
         transactionRepository.Update(transaction);
 
         // Updating the account with the updated transaction.
-        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.TransactionType, transaction.Amount);
+        accountRepository.UpdateAccountTotal(transaction.Account!, transaction.Amount, transaction.TransactionType);
 
         _ = await transactionRepository.SaveAsync();
 
