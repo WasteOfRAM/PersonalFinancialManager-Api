@@ -5,5 +5,5 @@ using PersonalFinancialManager.Core.Enumerations;
 
 public interface IAccountRepository : IRepositoryBase<Account>
 {
-    void UpdateAccountTotal(Account account, TransactionType transactionType, decimal amount);
+    void UpdateAccountTotal(Account account, decimal transactionAmount, TransactionType transactionType);
 }

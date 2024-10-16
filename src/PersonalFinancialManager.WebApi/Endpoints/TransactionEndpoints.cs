@@ -50,15 +50,15 @@ public static class TransactionEndpoints
         })
             .MapToApiVersion(1);
 
-        transactionRoutes.MapPut("/", async Task<Results<Ok<TransactionDTO>, NotFound>> (UpdateTransactionDTO updateTransactionDTO, ITransactionService transactionService, HttpContext context) =>
+        transactionRoutes.MapPut("/", async Task<Results<Ok<TransactionDTO>, NotFound, ValidationProblem>> (UpdateTransactionDTO updateTransactionDTO, ITransactionService transactionService, HttpContext context) =>
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             ServiceResult<TransactionDTO> serviceResult = await transactionService.UpdateAsync(updateTransactionDTO, userId!);
 
             if (!serviceResult.Success) 
-            { 
-                return TypedResults.NotFound(); 
+            {
+                return serviceResult.Errors == null ? TypedResults.NotFound() : TypedResults.ValidationProblem(serviceResult.Errors);
             }
 
             return TypedResults.Ok(serviceResult.Data);
@@ -66,7 +66,7 @@ public static class TransactionEndpoints
             .MapToApiVersion(1)
             .AddEndpointFilter<ModelValidationFilter<UpdateTransactionDTO>>();
 
-        transactionRoutes.MapDelete("/{id:Guid}", async Task<Results<NoContent, NotFound>> (Guid id, ITransactionService transactionService, HttpContext context) =>
+        transactionRoutes.MapDelete("/{id:Guid}", async Task<Results<NoContent, NotFound, ValidationProblem>> (Guid id, ITransactionService transactionService, HttpContext context) =>
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -74,7 +74,7 @@ public static class TransactionEndpoints
 
             if (!serviceResult.Success)
             {
-                return TypedResults.NotFound();
+                return serviceResult.Errors == null ? TypedResults.NotFound() : TypedResults.ValidationProblem(serviceResult.Errors);
             }
 
             return TypedResults.NoContent();
