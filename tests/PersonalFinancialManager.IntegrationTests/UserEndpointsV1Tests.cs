@@ -204,15 +204,17 @@ public class UserEndpointsV1Tests(TestsFixture testsFixture)
 
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessTokens.AccessToken);
 
-        configuration["Jwt:TokenExpirationInMinutes"] = "2880";
-        configuration["Jwt:RefreshTokenExpirationInMinutes"] = "5760";
-
         // Act
-
+        await Task.Delay(1000);
         var response = await httpClient.PostAsJsonAsync(UserEndpoints.Refresh, refreshTokenDTO);
 
         // Assert
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        // Cleanup
+
+        configuration["Jwt:TokenExpirationInMinutes"] = "2880";
+        configuration["Jwt:RefreshTokenExpirationInMinutes"] = "5760";
     }
 }
