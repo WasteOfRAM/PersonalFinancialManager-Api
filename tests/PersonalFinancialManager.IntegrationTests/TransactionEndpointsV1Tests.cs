@@ -39,6 +39,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
 
         var generatedTestAccount = accountDataGenerator.GenerateAccountEntities()[0];
+        generatedTestAccount.Total = 200.0000m;
 
         using var scope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -47,7 +48,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
 
         var transactionGenerator = new TransactionDataGenerator(generatedTestAccount.Id);
 
-        var createTransactionDTO = transactionGenerator.GenerateCreateTransactionDTO();
+        var createTransactionDTO = transactionGenerator.GenerateCreateTransactionDTO() with { Amount = 100.0000m };
 
         // Act
         var response = await httpClient.PostAsJsonAsync(TransactionEndpoints.TransactionBase, createTransactionDTO);
@@ -259,7 +260,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
     }
 
     [Fact]
-    public async Task Update_Existing_Transaction_With_Valid_Data_Returns_StatusCode_Ok_And_Updated_Transaction_Data()
+    public async Task Update_LastAdded_Existing_Transaction_With_Valid_Data_Returns_StatusCode_Ok_And_Updated_Transaction_Data()
     {
         // Arrange
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
@@ -269,6 +270,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
 
         var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
         var testAccountEntity = generatedEntities[0];
+        testAccountEntity.Total = 200.0000m;
 
         using var scope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -280,11 +282,12 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
         var generatedTransactions = transactionGenerator.GenerateTransactionEntities(generateTransactionsCount);
         testAccountEntity.Transactions = generatedTransactions;
 
+        var testTransactionEntity = generatedTransactions.OrderByDescending(t => t.CreationDate).First();
+        testTransactionEntity.Amount = 100.0000m;
+
         await appDbContext.SaveChangesAsync();
 
-        var testTransactionEntity = generatedTransactions[0];
-
-        var updateTransactionDTO = transactionGenerator.GenerateUpdateTransactionDTO(testTransactionEntity.Id.ToString());
+        var updateTransactionDTO = transactionGenerator.GenerateUpdateTransactionDTO(testTransactionEntity.Id.ToString()) with { Amount = 100m };
 
         // Act
         var response = await httpClient.PutAsJsonAsync(TransactionEndpoints.TransactionBase, updateTransactionDTO);
@@ -346,7 +349,7 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
     }
 
     [Fact]
-    public async Task Delete_With_Existing_TransactionId_Returns_StatusCode_NoContent()
+    public async Task Delete_With_Existing_TransactionId_Last_Added_Transaction_Returns_StatusCode_NoContent()
     {
         // Arrange
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
@@ -356,8 +359,50 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
 
         var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
         var testAccountEntity = generatedEntities[0];
+        testAccountEntity.Total = 200.0000m;
 
-        testAccountEntity.Total = 0.0m;
+        using var scope = testsFixture.AppFactory.Services.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await appDbContext.AddRangeAsync(generatedEntities);
+
+        var transactionGenerator = new TransactionDataGenerator(testAccountEntity.Id);
+
+        var generatedTransactions = transactionGenerator.GenerateTransactionEntities(generateTransactionsCount);
+        testAccountEntity.Transactions = generatedTransactions;
+        
+        var testTransactionEntity = generatedTransactions.OrderByDescending(t => t.CreationDate).First();
+        testTransactionEntity.Amount = 100.0000m;
+
+        await appDbContext.SaveChangesAsync();
+
+        // Act
+        var response = await httpClient.DeleteAsync(string.Format(TransactionEndpoints.TransactionWithId, testTransactionEntity.Id));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var deletedTransactionExists = await appDbContext.Transactions.AnyAsync(t => t.Id == testTransactionEntity.Id);
+        Assert.False(deletedTransactionExists);
+
+        // Cleanup
+        appDbContext.Entry(testAccountEntity).State = EntityState.Detached;
+        generatedEntities = await appDbContext.Accounts.ToListAsync();
+        appDbContext.RemoveRange(generatedEntities);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Delete_With_Existing_TransactionId_NOT_Last_Added_Transaction_Returns_StatusCode_BadRequest()
+    {
+        // Arrange
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", testUserAccessToken);
+
+        int generateAccountsCount = 2;
+        int generateTransactionsCount = 3;
+
+        var generatedEntities = accountDataGenerator.GenerateAccountEntities(generateAccountsCount);
+        var testAccountEntity = generatedEntities[0];
 
         using var scope = testsFixture.AppFactory.Services.CreateScope();
         var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -371,16 +416,19 @@ public class TransactionEndpointsV1Tests(TestsFixture testsFixture)
 
         await appDbContext.SaveChangesAsync();
 
-        var testTransactionEntity = generatedTransactions[0];
+        var testTransactionEntity = generatedTransactions.OrderBy(t => t.CreationDate).First();
 
         // Act
         var response = await httpClient.DeleteAsync(string.Format(TransactionEndpoints.TransactionWithId, testTransactionEntity.Id));
+        var problemResponse = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(problemResponse?.Errors);
+        Assert.Equal(ErrorMessages.ForbiddenTransactionDeletion.Code, problemResponse.Errors.First().Key);
 
         var deletedTransactionExists = await appDbContext.Transactions.AnyAsync(t => t.Id == testTransactionEntity.Id);
-        Assert.False(deletedTransactionExists);
+        Assert.True(deletedTransactionExists);
 
         // Cleanup
         appDbContext.Entry(testAccountEntity).State = EntityState.Detached;
