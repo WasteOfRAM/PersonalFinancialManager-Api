@@ -38,6 +38,8 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         builder.UseSetting("Jwt:Key", "TeStKeY-8hShWVAdgPn16QvOUtKndWBn5S5OBaVSzF-293tiNLc5nfPpxL4LFWeak2");
         builder.UseSetting("Jwt:Issuer", "TestIssuer");
         builder.UseSetting("Jwt:Audience", "Test");
+        builder.UseSetting("Jwt:TokenExpirationInMinutes", "2880");
+        builder.UseSetting("Jwt:RefreshTokenExpirationInMinutes", "5760");
     }
 
     public override async ValueTask DisposeAsync()
