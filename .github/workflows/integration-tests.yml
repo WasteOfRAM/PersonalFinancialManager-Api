@@ -1,0 +1,22 @@
+name: Run Integration Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore ./src/PersonalFinancialManager.sln
+    - name: Build
+      run: dotnet build ./src/PersonalFinancialManager.sln --configuration Debug --no-restore
+    - name: Tests
+      run: dotnet test tests/PersonalFinancialManager.IntegrationTests/PersonalFinancialManager.IntegrationTests.csproj --no-build --verbosity normal

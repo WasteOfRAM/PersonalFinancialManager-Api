@@ -2,7 +2,7 @@ name: Main
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
   pull_request:
     branches: ["main", "dev"]
 
@@ -10,3 +10,8 @@ jobs:
   unit-tests:
     name: Unit Tests
     uses: ./.github/workflows/unit-tests.yml
+
+  integration-tests:
+    name: Integration Tests
+    uses: ./.github/workflows/integration-tests.yml
+    needs: unit-tests
